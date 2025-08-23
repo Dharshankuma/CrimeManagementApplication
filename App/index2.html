@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Crime Management SPA — Modern Responsive UI</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Inter font (optional) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <header class="topbar d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <button
+          id="btnToggle"
+          class="btn btn-outline-secondary btn-sm d-none d-lg-inline-block"
+        >
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="brand">
+          <div class="logo"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="label">
+            <div>Crime<span style="color: var(--accent)">Mgmt</span></div>
+            <small class="muted">Police Intelligence</small>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="d-flex align-items-center gap-3"
+        style="min-width: 320px; max-width: 60vw"
+      >
+        <div class="input-group search-input" style="flex: 1;width: 20rem;">
+          <span class="input-group-text bg-white"
+            ><i class="fa-solid fa-magnifying-glass"></i
+          ></span>
+          <input
+            id="globalSearch"
+            class="form-control form-control-sm"
+            placeholder="Search cases, criminals, evidence..."
+          />
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-light position-relative">
+            <i class="fa-solid fa-bell"></i>
+            <span
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              id="notifBadge"
+              >3</span
+            >
+          </button>
+
+          <div class="dropdown">
+            <a
+              class="d-flex align-items-center text-decoration-none"
+              data-bs-toggle="dropdown"
+              href="#"
+              aria-expanded="false"
+            >
+              <img
+                src="https://i.pravatar.cc/40"
+                alt="avatar"
+                class="rounded-circle"
+                width="36"
+                height="36"
+              />
+              <div class="ms-2 d-none d-sm-block">
+                <div style="font-weight: 600">Inspector D</div>
+                <small class="muted">Central Station</small>
+              </div>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#">Profile</a></li>
+              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="layout" id="mainLayout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <!-- <div class="mb-3 d-flex align-items-center justify-content-between">
+          <div>
+            <div class="muted">Welcome,</div>
+            <div style="font-weight: 700">Inspector D</div>
+          </div>
+          <div class="text-end d-none d-lg-block">
+            <small class="muted">Station</small><br />
+            <strong>Central</strong>
+          </div>
+        </div>
+ -->
+        <nav class="nav flex-column mb-3">
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link active crime_dashboard" data-view="dashboard"
+              ><i class="fa-solid fa-gauge-high"></i
+              ><span class="nav-text ms-2">Dashboard</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_report" data-view="crime-reporting"
+              ><i class="fa-solid fa-file-pen"></i
+              ><span class="nav-text ms-2">Crime Reporting</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_investigation" data-view="investigations"
+              ><i class="fa-solid fa-user-police"></i
+              ><span class="nav-text ms-2">Investigations</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_evidence" data-view="evidence"
+              ><i class="fa-solid fa-box-archive"></i
+              ><span class="nav-text ms-2">Evidence</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_criminals" data-view="criminals"
+              ><i class="fa-solid fa-user-secret"></i
+              ><span class="nav-text ms-2">Criminals</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_users" data-view="users"
+              ><i class="fa-solid fa-users-gear"></i
+              ><span class="nav-text ms-2">Users</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_notificatinos" data-view="notifications"
+              ><i class="fa-solid fa-bell"></i
+              ><span class="nav-text ms-2">Notifications</span></a
+            >
+          </div>
+          <div class="nav-item mb-1">
+            <a href="#" class="nav-link crime_audit_logs" data-view="logs"
+              ><i class="fa-solid fa-file-lines"></i
+              ><span class="nav-text ms-2">Audit Logs</span></a
+            >
+          </div>
+        </nav>
+
+        <!-- <div class="mt-auto d-none d-lg-block">
+          <div class="mb-2">
+            <button class="btn btn-sm btn-light w-100 mb-2" id="btnQuickReport">
+              <i class="fa-solid fa-plus me-2"></i> New Report
+            </button>
+            <button
+              class="btn btn-sm btn-outline-light w-100"
+              id="btnQuickEvidence"
+            >
+              <i class="fa-solid fa-box-archive me-2"></i> Add Evidence
+            </button>
+          </div>
+          <div class="footer-note">Version 1.0 • Admin</div>
+        </div> -->
+      </aside>
+
+      <!-- CONTENT -->
+      <main class="content">
+        <div id="viewsContainer">
+          <!-- DASHBOARD -->
+          <section id="view-dashboard" class="view">
+            <div class="row gy-3">
+              <div class="col-12">
+                <div
+                  class="d-flex justify-content-between align-items-center mb-2"
+                >
+                  <h4 class="mb-0">Dashboard</h4>
+                  <small class="muted">Overview & quick actions</small>
+                </div>
+              </div>
+
+              <!-- KPIs -->
+              <div class="col-lg-3 col-sm-6">
+                <div class="stat-card">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="kpi" id="kpiReports">0</div>
+                      <div class="kpi-sub">New Reports (30d)</div>
+                    </div>
+                    <div class="text-end">
+                      <div
+                        class="badge rounded-pill"
+                        style="
+                          background: rgba(14, 165, 164, 0.12);
+                          color: var(--accent-2);
+                          padding: 0.6rem 0.7rem;
+                        "
+                      >
+                        <i class="fa-solid fa-file-pen fa-lg"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2 muted">
+                    High priority: <strong id="kpiHigh">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-sm-6">
+                <div class="stat-card">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="kpi" id="kpiInvestigations">0</div>
+                      <div class="kpi-sub">Open Investigations</div>
+                    </div>
+                    <div class="text-end">
+                      <div
+                        class="badge rounded-pill"
+                        style="
+                          background: rgba(4, 109, 120, 0.12);
+                          color: var(--accent-2);
+                          padding: 0.6rem 0.7rem;
+                        "
+                      >
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2 muted">
+                    Avg duration: <strong id="kpiAvgDays">0</strong> days
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-sm-6">
+                <div class="stat-card">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="kpi" id="kpiEvidence">0</div>
+                      <div class="kpi-sub">Evidence Items</div>
+                    </div>
+                    <div class="text-end">
+                      <div
+                        class="badge rounded-pill"
+                        style="
+                          background: rgba(255, 193, 7, 0.08);
+                          color: #b07a00;
+                          padding: 0.6rem 0.7rem;
+                        "
+                      >
+                        <i class="fa-solid fa-box-archive"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2 muted">Photos, docs & more</div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-sm-6">
+                <div class="stat-card">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="kpi" id="kpiCriminals">0</div>
+                      <div class="kpi-sub">Watchlist</div>
+                    </div>
+                    <div class="text-end">
+                      <div
+                        class="badge rounded-pill"
+                        style="
+                          background: rgba(220, 38, 38, 0.06);
+                          color: #b02a2a;
+                          padding: 0.6rem 0.7rem;
+                        "
+                      >
+                        <i class="fa-solid fa-user-secret"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2 muted">
+                    Active alerts: <strong id="kpiAlerts">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Charts and Recent Tables -->
+              <div class="col-lg-8">
+                <div class="card p-3 mb-3">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-2"
+                  >
+                    <h6 class="mb-0">Case Trends (14 days)</h6>
+                    <small class="muted">Reports by day</small>
+                  </div>
+                  <canvas id="chartTrends" height="140"></canvas>
+                </div>
+
+                <div class="card p-3">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-2"
+                  >
+                    <h6 class="mb-0">Recent Reports</h6>
+                    <small class="muted">Latest 10</small>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                      <thead>
+                        <tr>
+                          <th>Case #</th>
+                          <th>Title</th>
+                          <th>Type</th>
+                          <th>Location</th>
+                          <th>Reported</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tblRecentReports"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <div class="card p-3 mb-3" style="display: none;">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-2"
+                  >
+                    <h6 class="mb-0">Hotspots</h6>
+                    <small class="muted">Map</small>
+                  </div>
+                  <div
+                    class="border rounded"
+                    style="
+                      height: 260px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                  >
+                    <div class="text-center muted">
+                      <i class="fa-solid fa-map-location-dot fa-2x mb-2"></i>
+                      <div>Map placeholder — integrate Leaflet/Mapbox</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card p-3">
+                  <h6 class="mb-2">Quick Actions</h6>
+                  <div class="d-grid gap-2">
+                    <button id="quickReportBtn" class="btn btn-primary">
+                      Log Crime
+                    </button>
+                    <button
+                      id="quickEvidenceBtn"
+                      class="btn btn-outline-primary"
+                    >
+                      Add Evidence
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CRIME REPORTING -->
+          <section id="view-crime-reporting" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Crime Reporting</h4>
+                <small class="muted">Create and manage citizen reports</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" id="openNewReport">
+                  <i class="fa-solid fa-plus me-1"></i> New Report
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-3 mb-3">
+              <form id="filterForm" class="row g-2">
+                <div class="col-md-3">
+                  <select class="form-select" id="filterType">
+                    <option value="">All types</option>
+                    <option value="theft">Theft</option>
+                    <option value="assault">Assault</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <input type="date" id="filterFrom" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <input type="date" id="filterTo" class="form-control" />
+                </div>
+                <div class="col-md-3 text-end">
+                  <button
+                    id="applyFilter"
+                    class="btn btn-sm btn-outline-secondary"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card p-3">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Report #</th>
+                      <th>Title</th>
+                      <th>Type</th>
+                      <th>Location</th>
+                      <th>Reported</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblReports"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- INVESTIGATIONS -->
+          <section id="view-investigations" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Investigations</h4>
+                <small class="muted">Workflow & assignments</small>
+              </div>
+              <div>
+                <button
+                  class="btn btn-sm btn-primary"
+                  id="openNewInvestigation"
+                >
+                  <i class="fa-solid fa-plus me-1"></i> New Investigation
+                </button>
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-lg-7">
+                <div class="card p-3">
+                  <h6 class="mb-2">Open Investigations</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Case</th>
+                          <th>Lead</th>
+                          <th>Stage</th>
+                          <th>Updated</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tblInvestigations"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-5">
+                <div class="card p-3">
+                  <h6 class="mb-2">Activity Timeline</h6>
+                  <ul class="list-unstyled" id="activityList"></ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- EVIDENCE -->
+          <section id="view-evidence" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Evidence Management</h4>
+                <small class="muted">Store and track items</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" id="openEvidenceModal">
+                  <i class="fa-solid fa-plus me-1"></i> Add Evidence
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-3">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                      <th>Case</th>
+                      <th>Location</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblEvidence"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- CRIMINALS -->
+          <section id="view-criminals" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Criminal Records</h4>
+                <small class="muted">Profiles & watchlist</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" id="openAddCriminal">
+                  <i class="fa-solid fa-user-plus me-1"></i> Add Criminal
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-3">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Aliases</th>
+                      <th>Risk</th>
+                      <th>Last Seen</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblCriminals"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- USERS -->
+          <section id="view-users" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">User Management</h4>
+                <small class="muted">Create officers and roles</small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" id="openAddUser">
+                  <i class="fa-solid fa-user-plus me-1"></i> New User
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-3">
+              <div class="table-responsive">
+                <table class="table table-hover table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>UID</th>
+                      <th>Name</th>
+                      <th>Role</th>
+                      <th>Station</th>
+                      <th>Last Login</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblUsers"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- NOTIFICATIONS -->
+          <section id="view-notifications" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Notifications</h4>
+                <small class="muted">Recent alerts</small>
+              </div>
+              <div>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  id="clearNotifs"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            <div class="card p-3">
+              <ul class="list-group" id="notifList"></ul>
+            </div>
+          </section>
+
+          <!-- LOGS -->
+          <section id="view-logs" class="view" style="display: none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h4 class="mb-0">Audit Logs</h4>
+                <small class="muted">System activity</small>
+              </div>
+            </div>
+
+            <div class="card p-3">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>User</th>
+                      <th>Action</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblLogs"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODALS -->
+    <!-- New Report Modal (modal-fullscreen-sm-down makes it fullscreen on small devices) -->
+    <div
+      class="modal fade"
+      id="modalNewReport"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <form id="formNewReport">
+            <div class="modal-header">
+              <h5 class="modal-title">New Crime Report</h5>
+              <button
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label class="form-label">Title</label
+                  ><input class="form-control" name="title" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Type</label
+                  ><select class="form-select" name="type" required>
+                    <option value="">Select</option>
+                    <option value="theft">Theft</option>
+                    <option value="assault">Assault</option>
+                    <option value="fraud">Fraud</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Location</label
+                  ><input
+                    class="form-control"
+                    name="location"
+                    placeholder="Address or area"
+                  />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Latitude</label
+                  ><input class="form-control" name="lat" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Longitude</label
+                  ><input class="form-control" name="lon" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label
+                  ><textarea
+                    class="form-control"
+                    name="description"
+                    rows="4"
+                  ></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Reported By</label
+                  ><input class="form-control" name="reportedBy" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Contact</label
+                  ><input class="form-control" name="contact" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Attachments</label
+                  ><input
+                    class="form-control"
+                    type="file"
+                    name="attachments"
+                    multiple
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-light" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button class="btn btn-primary" type="submit">Save Report</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence Modal -->
+    <div class="modal fade" id="modalEvidence" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-md modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <form id="formEvidence">
+            <div class="modal-header">
+              <h5 class="modal-title">Add Evidence</h5>
+              <button
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2">
+                <label class="form-label">Type</label
+                ><select class="form-select" name="etype" required>
+                  <option value="">Select</option>
+                  <option>Photo</option>
+                  <option>Document</option>
+                  <option>Video</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Associated Case</label
+                ><input class="form-control" name="caseId" />
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Description</label
+                ><textarea
+                  class="form-control"
+                  name="eDesc"
+                  rows="3"
+                ></textarea>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Upload</label
+                ><input class="form-control" type="file" name="efile" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-light" data-bs-dismiss="modal">
+                Close
+              </button>
+              <button class="btn btn-primary" type="submit">
+                Add Evidence
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generic confirm modal -->
+    <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-sm modal-fullscreen-sm-down">
+        <div class="modal-content">
+          <div class="modal-body" id="confirmBody"></div>
+          <div class="modal-footer">
+            <button class="btn btn-light" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button class="btn btn-danger" id="confirmOk">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
