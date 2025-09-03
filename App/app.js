@@ -289,6 +289,12 @@ $(function () {
   seed();
   renderAll();
 
+  $(".topbar").hide();
+  $("#mainLayout").hide();
+  $("#view-login").show();
+  $("#loginPassword").val("");
+  $("#loginUsername").val("");
+
   // show view
   function showView(name) {
     $(".nav-link").removeClass("active");
@@ -300,7 +306,7 @@ $(function () {
   }
 
   // initial
-  showView("dashboard");
+  //showView("dashboard");
 
   // sidebar clicks
   $(".nav-link").on("click", function (e) {
@@ -451,7 +457,32 @@ $(function () {
       )
     );
   });
+  $("#log_out_page").on("click", function () {
+    $(".topbar").hide();
+    $("#mainLayout").hide();
+    $("#view-login").show();
+  });
+  $("#loginForm").on("submit", function (e) {
+    e.preventDefault();
 
+    let user = $("#loginUsername").val().trim();
+    let pass = $("#loginPassword").val().trim();
+
+    if (user === "Admin" && pass === "1234") {
+      // Hide login, show dashboard layout
+      $("#view-login").hide();
+      $(".topba").show();
+      $("#mainLayout").show();
+      $("#loginPassword").val("");
+      $("#loginUsername").val("");
+
+      showView("dashboard");
+
+      
+    } else {
+      $("#loginError").fadeIn();
+    }
+  });
   // responsive: collapse layout on small screens automatically
   function adaptLayout() {
     if (window.innerWidth < 992) $("#mainLayout").addClass("collapsed");
