@@ -112,7 +112,20 @@ namespace CrimeManagement.Controllers
             }
         }
 
-
+        [HttpGet]
+        [Route("GenerateKey")]
+        public async Task<IActionResult> DoGenereateKey()
+        {
+            try
+            {
+                var key = CustomHelper.CustomHelper.GenerateRandomKey(31);
+                return Ok(new { status = "success" ,key = Convert.ToBase64String(key)});
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
 
 
 

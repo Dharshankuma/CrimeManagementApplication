@@ -92,6 +92,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("CrimeManagement");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
