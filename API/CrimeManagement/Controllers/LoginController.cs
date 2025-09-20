@@ -53,7 +53,9 @@ namespace CrimeManagement.Controllers
                 }
 
                 // Replace this with proper hash comparison in production
-                if (!objdto.password.Trim().Equals(userDetails.HashPassword.Trim(), StringComparison.Ordinal))
+
+                string decryptPassword = CustomHelper.CustomHelper.Decrypt(userDetails.HashPassword);
+                if (!objdto.password.Trim().Equals(decryptPassword, StringComparison.Ordinal))
                 {
                     response.responseStatus = "failure";
                     response.responseDescription = "Incorrect Password";
