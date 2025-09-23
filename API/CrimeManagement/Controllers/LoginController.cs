@@ -7,6 +7,7 @@ using Microsoft.VisualBasic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static CrimeManagement.DTO.CrimeResponseDTO;
 
 namespace CrimeManagement.Controllers
 {
@@ -18,19 +19,21 @@ namespace CrimeManagement.Controllers
         private readonly IConfiguration _config;
         private readonly Microsoft.AspNetCore.Hosting.IHostingEnvironment _environement;
         private readonly IUserService _userService;
-        public LoginController(IConfiguration config, Microsoft.AspNetCore.Hosting.IHostingEnvironment environement,IUserService userService)
+        private readonly ILoginService _loginService;
+        public LoginController(IConfiguration config, Microsoft.AspNetCore.Hosting.IHostingEnvironment environement,IUserService userService, ILoginService loginService)
         {
             _config = config;
             _environement = environement;
             _userService = userService;
+            _loginService = loginService;
         }
 
 
         [HttpPost]
         [Route("LoginUser")]
-        public async Task<CrimeResponseDTO<LoginDetails>> DoCheckLoginUser(LoginDTO objdto)
+        public async Task<IActionResult> DoCheckLoginUser(LoginDTO objdto)
         {
-            var response = new CrimeResponseDTO<LoginDetails>
+            var response = new CommonResponseDTO
             {
                 responseDatetime = DateTime.UtcNow
             };
@@ -38,29 +41,15 @@ namespace CrimeManagement.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(objdto.emailId) || string.IsNullOrWhiteSpace(objdto.password))
-                {
-                    response.responseStatus = "failure";
-                    response.responseDescription = "Email Id or Password is missing";
-                    return response;
-                }
+                    throw new CustomException("Email Id or Password is missing");
 
                 var userDetails = await DoGetUserData(objdto.emailId);
                 if (userDetails == null)
-                {
-                    response.responseStatus = "failure";
-                    response.responseDescription = "User does not exist";
-                    return response;
-                }
-
-                // Replace this with proper hash comparison in production
+                    throw new CustomException("User does not exist");
 
                 string decryptPassword = CustomHelper.CustomHelper.Decrypt(userDetails.HashPassword);
                 if (!objdto.password.Trim().Equals(decryptPassword, StringComparison.Ordinal))
-                {
-                    response.responseStatus = "failure";
-                    response.responseDescription = "Incorrect Password";
-                    return response;
-                }
+                    throw new CustomException("Incorrect Password");
 
                 // ----- Create JWT -----
                 var claims = new[]
@@ -98,17 +87,25 @@ namespace CrimeManagement.Controllers
 
                 response.responseCode = 200;
                 response.responseStatus = "success";
-                response.responseDescription = "Login successful";
+                response.responseMessage = "Login successful";
                 response.data = loginDetails;
 
-                return response;
+                return Ok(response);
+            }
+            catch (CustomException ex)
+            {
+                response.responseCode = 400;
+                response.responseStatus = "failure";
+                response.responseMessage = ex.Message;
+                return BadRequest(response);
             }
             catch (Exception ex)
             {
                 response.responseCode = 500;
                 response.responseStatus = "failure";
-                response.responseDescription = ex.Message;
-                return response;
+                response.responseMessage = "An unexpected error occurred.";
+                response.data = ex.Message; // optional: remove in production
+                return StatusCode(500, response);
             }
         }
 
@@ -128,12 +125,38 @@ namespace CrimeManagement.Controllers
         }
 
 
+        [HttpPost]
+        [Route("RegisterUser")]
+        public async Task<IActionResult> DoRegisterUser(RegisterUserDTO objdto)
+        {
+            try
+            {
+                if(objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request" });
+                }
+
+                await _loginService.DoRegisterUser(objdto);
+
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "User Registered Successfully" });
+            }
+            catch(CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message });
+
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message });
+            }
+        }
+
 
 
 
         private async Task<UserLoginDetails> DoGetUserData(string emailId)
         {
-            var userDetails = await _userService.DoGetUserDetails(emailId);
+            var userDetails = await _userService.DoGetLoginUserDetails(emailId);
             return userDetails;
         }
     }

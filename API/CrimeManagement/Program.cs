@@ -81,6 +81,9 @@ builder.Services.Scan(scan => scan
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+CrimeManagement.CustomHelper.CustomHelper.InitializeKey(builder.Configuration);
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
