@@ -133,25 +133,49 @@ namespace CrimeManagement.Controllers
             {
                 if(objdto == null)
                 {
-                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request" });
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request" ,responseStatus = Helper.CustomHelper._failure});
                 }
 
                 await _loginService.DoRegisterUser(objdto);
 
-                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "User Registered Successfully" });
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "User Registered Successfully",responseStatus = Helper.CustomHelper._success});
             }
             catch(CustomException ex)
             {
-                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message });
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message,responseStatus = Helper.CustomHelper._failure });
 
             }
             catch(Exception ex)
             {
-                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message });
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message,responseStatus = Helper.CustomHelper._failure });
             }
         }
 
+        [HttpPost]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> DoResetPassword(RegisterUserDTO objdto)
+        {
+            try
+            {
+                if (objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request", responseStatus = Helper.CustomHelper._failure });
+                }
 
+                await _loginService.DoResetPassword(objdto);
+
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "Resetted password", responseStatus = Helper.CustomHelper._success });
+
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+        }
 
 
         private async Task<UserLoginDetails> DoGetUserData(string emailId)

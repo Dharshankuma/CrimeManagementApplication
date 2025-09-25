@@ -2,12 +2,15 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CrimeManagement.CustomHelper
+namespace CrimeManagement.Helper
 {
 
     public static class CustomHelper
     {
         private static byte[] _encryptionKey;
+
+        public static string _success = "success";
+        public static string _failure = "failure";
 
         public static void InitializeKey(IConfiguration config)
         {
