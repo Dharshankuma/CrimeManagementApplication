@@ -47,7 +47,7 @@ namespace CrimeManagement.Controllers
                 if (userDetails == null)
                     throw new CustomException("User does not exist");
 
-                string decryptPassword = CustomHelper.CustomHelper.Decrypt(userDetails.HashPassword);
+                string decryptPassword = Helper.CustomHelper.Decrypt(userDetails.HashPassword);
                 if (!objdto.password.Trim().Equals(decryptPassword, StringComparison.Ordinal))
                     throw new CustomException("Incorrect Password");
 
@@ -115,7 +115,7 @@ namespace CrimeManagement.Controllers
         {
             try
             {
-                var key = CustomHelper.CustomHelper.GenerateRandomKey(31);
+                var key = Helper.CustomHelper.GenerateRandomKey(31);
                 return Ok(new { status = "success" ,key = Convert.ToBase64String(key)});
             }
             catch(Exception ex)
