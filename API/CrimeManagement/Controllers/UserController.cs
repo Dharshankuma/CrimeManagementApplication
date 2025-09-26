@@ -9,7 +9,7 @@ namespace CrimeManagement.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("CrimeManagement")]
-    public class UserController : Controller
+    public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
 

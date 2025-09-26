@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace CrimeManagement.Controllers
+namespace CrimeManagement.Controllers.Masters
 {
-    public class AdminController : Controller
+    public class StateMasterController : Controller
     {
         public IActionResult Index()
         {

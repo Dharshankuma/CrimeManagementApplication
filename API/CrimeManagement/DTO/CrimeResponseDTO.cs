@@ -10,6 +10,7 @@
         public class Data<T>
         {
             public T? data { get; set; }
+            public int? totalCount { get; set; }
         }
 
 

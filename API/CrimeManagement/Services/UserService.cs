@@ -158,11 +158,14 @@ namespace CrimeManagement.Services
                                              dob = user.Dob
                                          }).ToListAsync();
 
+                var totalCount = userDetails.Count();
+
 
 
                 return new Data<List<UserDTO>>
                 {
-                    data = userDetails
+                    data = userDetails,
+                    totalCount = totalCount,
                 };
             }
             catch(Exception ex)

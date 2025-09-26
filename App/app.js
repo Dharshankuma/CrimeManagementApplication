@@ -41,6 +41,94 @@ function seed() {
       reported: "2025-08-04",
       status: "Resolved",
     },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
+    {
+      id: "RPT-1003",
+      title: "Online fraud",
+      type: "fraud",
+      location: "Cyber Hub",
+      reported: "2025-08-04",
+      status: "Resolved",
+    },
   ];
   state.investigations = [
     {
@@ -130,11 +218,24 @@ function renderRecentReports() {
         </tr>`);
   });
 }
-
-function renderTables() {
-  // Reports
+const reportsPerPage = 5; // items per page
+let currentPage = 1; // current page
+function renderTables(page = 1) {
   const $tbl = $("#tblReports").empty();
-  state.reports.forEach((r) => {
+  const totalReports = state.reports.length;
+  const totalPages = Math.ceil(totalReports / reportsPerPage);
+
+  // Bound page
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  currentPage = page;
+
+  // Slice reports for current page
+  const start = (page - 1) * reportsPerPage;
+  const end = start + reportsPerPage;
+  const pageReports = state.reports.slice(start, end);
+
+  pageReports.forEach((r) => {
     $tbl.append(`<tr>
           <td>${r.id}</td>
           <td>${escape(r.title)}</td>
@@ -151,85 +252,52 @@ function renderTables() {
           <td>
             <button class="btn btn-sm btn-outline-primary action-btn view-report" data-id="${
               r.id
-            }"><i class="fa-solid fa-eye"></i></button>
+            }">
+              <i class="fa-solid fa-eye"></i>
+            </button>
             <button class="btn btn-sm btn-outline-secondary action-btn assign-report" data-id="${
               r.id
-            }"><i class="fa-solid fa-user-plus"></i></button>
+            }">
+              <i class="fa-solid fa-user-plus"></i>
+            </button>
           </td>
         </tr>`);
   });
 
-  // Investigations
-  const $inv = $("#tblInvestigations").empty();
-  state.investigations.forEach((i) => {
-    $inv.append(
-      `<tr><td>${i.id}</td><td>${i.caseId}</td><td>${escape(
-        i.lead
-      )}</td><td>${escape(i.stage)}</td><td>${i.updated || ""}</td></tr>`
-    );
-  });
+  // Render Bootstrap Pagination
+  const $pagination = $("#reportsPagination").empty();
 
-  // Evidence
-  const $e = $("#tblEvidence").empty();
-  state.evidence.forEach((e) => {
-    $e.append(
-      `<tr><td>${e.id}</td><td>${escape(e.type)}</td><td>${escape(
-        e.desc
-      )}</td><td>${e.caseId || ""}</td><td>${escape(
-        e.location || ""
-      )}</td><td><button class="btn btn-sm btn-light"><i class="fa-solid fa-download"></i></button></td></tr>`
-    );
-  });
+  // Previous
+  $pagination.append(`
+    <li class="page-item ${page === 1 ? "disabled" : ""}">
+      <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
+    </li>
+  `);
 
-  // Criminals
-  const $c = $("#tblCriminals").empty();
-  state.criminals.forEach((c) => {
-    $c.append(
-      `<tr><td>${c.id}</td><td>${escape(c.name)}</td><td>${escape(
-        c.aliases
-      )}</td><td>${escape(c.risk)}</td><td>${escape(
-        c.lastSeen
-      )}</td><td><button class="btn btn-sm btn-outline-secondary">View</button></td></tr>`
-    );
-  });
+  // Page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    $pagination.append(`
+      <li class="page-item ${i === page ? "active" : ""}">
+        <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>
+    `);
+  }
 
-  // Users
-  const $u = $("#tblUsers").empty();
-  state.users.forEach((u) => {
-    $u.append(
-      `<tr><td>${u.uid}</td><td>${escape(u.name)}</td><td>${escape(
-        u.role
-      )}</td><td>${escape(u.station)}</td><td>${escape(
-        u.lastLogin
-      )}</td><td><button class="btn btn-sm btn-outline-secondary">Edit</button></td></tr>`
-    );
-  });
-
-  // Logs
-  const $l = $("#tblLogs").empty();
-  state.logs.forEach((log) => {
-    $l.append(
-      `<tr><td>${escape(log.time)}</td><td>${escape(log.user)}</td><td>${escape(
-        log.action
-      )}</td><td>${escape(log.details)}</td></tr>`
-    );
-  });
-
-  // Notifications
-  const $n = $("#notifList").empty();
-  state.notifications.forEach((n) => {
-    $n.append(`<li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <div>${escape(n.message)}</div>
-            <small class="muted">${escape(n.time)}</small>
-          </div>
-          <div><button class="btn btn-sm btn-outline-success mark-read" data-id="${
-            n.id
-          }"><i class="fa-solid fa-check"></i></button></div>
-        </li>`);
-  });
-  $("#notifstatus_badge").text(state.notifications.length);
+  // Next
+  $pagination.append(`
+    <li class="page-item ${page === totalPages ? "disabled" : ""}">
+      <a class="page-link" href="#" data-page="${page + 1}">Next</a>
+    </li>
+  `);
 }
+
+$(document).on("click", "#reportsPagination .page-link", function (e) {
+  e.preventDefault();
+  const selectedPage = parseInt($(this).data("page"));
+  if (!isNaN(selectedPage)) {
+    renderTables(selectedPage);
+  }
+});
 
 function escape(s) {
   return s === null || s === undefined
@@ -477,8 +545,6 @@ $(function () {
       $("#loginUsername").val("");
 
       showView("dashboard");
-
-      
     } else {
       $("#loginError").fadeIn();
     }

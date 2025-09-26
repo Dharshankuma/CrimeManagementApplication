@@ -58,6 +58,8 @@ public partial class CrimeDbContext : DbContext
 
     public virtual DbSet<StateMaster> StateMasters { get; set; }
 
+    public virtual DbSet<Statusmaster> Statusmasters { get; set; }
+
     public virtual DbSet<UserLoginLog> UserLoginLogs { get; set; }
 
     public virtual DbSet<UserMaster> UserMasters { get; set; }
@@ -425,6 +427,31 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.StateName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Statusmaster>(entity =>
+        {
+            entity.HasKey(e => e.Statusid).HasName("PK__statusma__36247E30001E7D83");
+
+            entity.ToTable("statusmaster");
+
+            entity.Property(e => e.Statusid).HasColumnName("statusid");
+            entity.Property(e => e.Createdby).HasColumnName("createdby");
+            entity.Property(e => e.Createdon)
+                .HasColumnType("datetime")
+                .HasColumnName("createdon");
+            entity.Property(e => e.Identifier)
+                .HasMaxLength(36)
+                .IsUnicode(false)
+                .HasColumnName("identifier");
+            entity.Property(e => e.Modifyby).HasColumnName("modifyby");
+            entity.Property(e => e.Modifyon)
+                .HasColumnType("datetime")
+                .HasColumnName("modifyon");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
         });
 
         modelBuilder.Entity<UserLoginLog>(entity =>
