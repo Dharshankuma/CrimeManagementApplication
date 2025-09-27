@@ -13,7 +13,6 @@ namespace CrimeManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [EnableCors("CrimeManagement")]
     public class LoginController : ControllerBase
     {
         private readonly IConfiguration _config;

@@ -99,26 +99,37 @@ namespace CrimeManagement.Services
 
         public async Task DoRaiseCrimeReport(CrimeReportDTO objdto)
         {
+            using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
+                // Validate user
+                var userId = await _db.UserMasters
+                    .Where(u => u.Identifier == objdto.userIdentifier)
+                    .Select(u => u.UserId)
+                    .FirstOrDefaultAsync();
 
-                var userId = await _db.UserMasters.Where(u => u.Identifier == objdto.userIdentifier).Select(u => u.UserId).FirstOrDefaultAsync();
+                if (userId == 0)
+                    throw new CustomException("User does not exist");
 
-                if(userId == null)
-                {
-                    throw new CustomException("User does not exisit");
-                }
-
+                // Validate jurisdiction
                 var jurisdictionId = await _db.JurisdictionMasters
-                                           .Where(j => j.Identifier == objdto.jurisdictionIdentifier)
-                                           .Select(j => j.JurisdictionId)
-                                           .FirstOrDefaultAsync();
+                    .Where(j => j.Identifier == objdto.jurisdictionIdentifier)
+                    .Select(j => j.JurisdictionId)
+                    .FirstOrDefaultAsync();
 
+                if (jurisdictionId == 0)
+                    throw new CustomException("Invalid jurisdiction");
+
+                // Validate crime type
                 var crimeTypeId = await _db.CrimeTypes
-                                           .Where(c => c.Identifier == objdto.crimeTypeIdentifier)
-                                           .Select(c => c.CrimeId)
-                                           .FirstOrDefaultAsync();
+                    .Where(c => c.Identifier == objdto.crimeTypeIdentifier)
+                    .Select(c => c.CrimeId)
+                    .FirstOrDefaultAsync();
 
+                if (crimeTypeId == 0)
+                    throw new CustomException("Invalid crime type");
+
+                // Create complaint
                 ComplaintRequest complaint = new ComplaintRequest
                 {
                     Identifier = Helper.CustomHelper.DoGenerateGuid(),
@@ -127,100 +138,101 @@ namespace CrimeManagement.Services
                     CrimeTypeId = crimeTypeId,
                     CrimeDescription = objdto.CrimeDescription,
                     PhoneNumber = objdto.PhoneNumber,
-                    DateReported = objdto.dateReportString != null ? DateTime.Parse(objdto.dateReportString) : null,
+                    DateReported = !string.IsNullOrEmpty(objdto.dateReportString)
+                                    ? DateTime.Parse(objdto.dateReportString)
+                                    : null,
                     CreatedBy = userId,
                     CreatedOn = DateTime.Now,
                     StatusId = await GetStatusIdByName("Open")
                 };
 
-                _db.ComplaintRequests.AddAsync(complaint);
+                await _db.ComplaintRequests.AddAsync(complaint);
                 await _db.SaveChangesAsync();
 
+                // Allocate IO and create investigation
                 await AllocateIoOfficerandCreateInvestigation(complaint);
+
+                await transaction.CommitAsync();
             }
             catch (CustomException ex)
             {
-                throw ex;
+                await transaction.RollbackAsync();
+                // log custom exception
+                throw;
             }
             catch (Exception ex)
             {
-                throw ex;
+                await transaction.RollbackAsync();
+                // log exception
+                throw;
             }
         }
 
         private async Task AllocateIoOfficerandCreateInvestigation(ComplaintRequest complaint)
         {
-            try
+            // Find IO officer for jurisdiction
+            var ioOfficer = await _db.IojurisdictionAssigns
+                .Where(ioj => ioj.JurisdictionId == complaint.JurisdictionId)
+                .Join(_db.UserMasters,
+                      ioj => ioj.UserId,
+                      um => um.UserId,
+                      (ioj, um) => um)
+                .FirstOrDefaultAsync();
+
+            if (ioOfficer == null)
+                throw new CustomException("No IO Officer found for the given jurisdiction");
+
+            // Create investigation
+            Investigation investigation = new Investigation
             {
-                var ioOfficer = await _db.IojurisdictionAssigns
-                                     .Where(ioj => ioj.JurisdictionId == complaint.JurisdictionId)
-                                     .Join(_db.UserMasters,
-                                           ioj => ioj.UserId,
-                                           um => um.UserId,
-                                           (ioj, um) => um)
-                                     .FirstOrDefaultAsync();
+                Identifier = Helper.CustomHelper.DoGenerateGuid(),
+                ComplaintId = complaint.ComplaintRequestId,
+                IoOfficerId = ioOfficer.UserId,
+                StartDate = DateTime.Now,
+                Priority = "Medium", // default
+                StatusId = await GetStatusIdByName("Under Investigation"),
+                CreatedBy = complaint.CreatedBy,
+                CreatedOn = DateTime.Now
+            };
 
-                if(ioOfficer == null)
-                {
-                    throw new CustomException("No IO Officer found for the given jurisdiction");
-                }
+            await _db.Investigations.AddAsync(investigation);
+            await _db.SaveChangesAsync();
 
-                Investigation investigation = new Investigation
-                {
-                    Identifier = Helper.CustomHelper.DoGenerateGuid(),
-                    ComplaintId = complaint.ComplaintRequestId,
-                    IoOfficerId = ioOfficer.UserId,
-                    StartDate = DateTime.Now,
-                    Priority = "Medium", // Default priority, can be dynamic
-                    StatusId = await GetStatusIdByName("Under Investigation"),
-                    CreatedBy = complaint.CreatedBy,
-                    CreatedOn = DateTime.Now
-                };
+            // Update complaint with IO & Investigation info
+            complaint.IoofficerId = ioOfficer.UserId;
+            complaint.InvestigationId = investigation.InvestigationId;
+            complaint.ModifyBy = complaint.CreatedBy;
+            complaint.ModifyOn = DateTime.Now;
 
-                _db.Investigations.Add(investigation);
-                await _db.SaveChangesAsync();
+            _db.ComplaintRequests.Update(complaint);
+            await _db.SaveChangesAsync();
 
-                complaint.IoofficerId = ioOfficer.UserId;
-                complaint.InvestigationId = investigation.InvestigationId;
-                complaint.ModifyBy = complaint.CreatedBy;
-                complaint.ModifyOn = DateTime.Now;
-                _db.ComplaintRequests.Update(complaint);
-                await _db.SaveChangesAsync();
-
-                ComplaintIoassign complaintIoAssign = new ComplaintIoassign
-                {
-                    Identifier = Guid.NewGuid().ToString(),
-                    ComplaintId = complaint.ComplaintRequestId,
-                    UserId = ioOfficer.UserId,
-                    ComplaintStatus = complaint.StatusId, // The status of the complaint when assigned
-                    CreatedBy = complaint.CreatedBy,
-                    CreatedOn = DateTime.Now
-                };
-
-                _db.ComplaintIoassigns.Add(complaintIoAssign);
-                await _db.SaveChangesAsync();
-
-
-                await SendNotification(ioOfficer.UserId, "New Complaint Assigned", $"A new complaint (ID: {complaint.Identifier}) has been assigned to you for investigation.");
-            }
-            catch(CustomException ex)
+            // Create Complaint-IO mapping
+            ComplaintIoassign complaintIoAssign = new ComplaintIoassign
             {
-                throw ex;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }   
+                Identifier = Helper.CustomHelper.DoGenerateGuid(),
+                ComplaintId = complaint.ComplaintRequestId,
+                UserId = ioOfficer.UserId,
+                ComplaintStatus = complaint.StatusId,
+                CreatedBy = complaint.CreatedBy,
+                CreatedOn = DateTime.Now
+            };
+
+            await _db.ComplaintIoassigns.AddAsync(complaintIoAssign);
+            await _db.SaveChangesAsync();
+
+            // Send notification
+            await SendNotification(ioOfficer.UserId,
+                "New Complaint Assigned",
+                $"A new complaint (ID: {complaint.Identifier}) has been assigned to you for investigation.");
         }
 
         private async Task<int> GetStatusIdByName(string statusName)
         {
             var status = await _db.Statusmasters.FirstOrDefaultAsync(s => s.Status == statusName);
-
             if (status != null)
                 return status.Statusid;
 
-            // fallback if not found in DB
             return statusName switch
             {
                 "Open" => 1,
@@ -238,14 +250,15 @@ namespace CrimeManagement.Services
                 UserId = userId,
                 Title = title,
                 Message = message,
-                Type = "Complaint Assignment", // or "Investigation"
+                Type = "Complaint Assignment",
                 IsRead = false,
                 CreatedOn = DateTime.Now,
-                CreatedBy = 1 // Assuming a system user for notifications
+                CreatedBy = 1 // configure system user ID
             };
 
-            _db.Notifications.Add(newNotification);
+            await _db.Notifications.AddAsync(newNotification);
             await _db.SaveChangesAsync();
         }
+
     }
 }
