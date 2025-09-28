@@ -9,7 +9,6 @@ namespace CrimeManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [EnableCors("CrimeManagement")]
     public class CrimeReportController : ControllerBase
     {
         private readonly ICrimeReportService _crimeService;
@@ -20,7 +19,7 @@ namespace CrimeManagement.Controllers
         }
 
 
-        [HttpGet]
+        [HttpPost]
         [Route("GetCrimeReports")]
         public async Task<IActionResult> DoGetCrimeReports(CrimeRequestviewDTO objdto)
         {

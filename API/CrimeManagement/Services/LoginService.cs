@@ -45,7 +45,9 @@ namespace CrimeManagement.Services
                         EmailId = objdto.emailId,
                         PhoneNo = objdto.phoneNo,
                         Identifier = Helper.CustomHelper.DoGenerateGuid(),
-                        HashPassword = Helper.CustomHelper.Encrypt(objdto.password)
+                        HashPassword = Helper.CustomHelper.Encrypt(objdto.password),
+                        Status = "Active",
+                        RoleId = 3  //by default the role will get assign as citizen 
                     };
 
                     await _db.UserMasters.AddAsync(user);

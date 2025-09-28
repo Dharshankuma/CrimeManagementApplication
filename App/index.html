@@ -21,9 +21,19 @@
       rel="stylesheet"
     />
 
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
+    />
+
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div class="loader_div" id="loader">
+      <div class="spinner-border custom-spinner" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
     <!-- LOGIN PAGE -->
     <section id="view-login" class="view" style="display: none">
       <div
@@ -45,7 +55,9 @@
           <!-- Login Form -->
           <form id="loginForm">
             <div class="mb-3">
-              <label class="form-label">Username</label>
+              <label class="form-label"
+                >User Name<span class="mandatory_field">*</span></label
+              >
               <input
                 type="text"
                 class="form-control"
@@ -54,7 +66,9 @@
               />
             </div>
             <div class="mb-3">
-              <label class="form-label">Password</label>
+              <label class="form-label"
+                >Password<span class="mandatory_field">*</span></label
+              >
               <input
                 type="password"
                 class="form-control"
@@ -62,24 +76,159 @@
                 required
               />
             </div>
-            <div class="d-flex justify-content-center align-items-center mb-3">
-              <a href="#" class="small">Forgot password?</a>
+            <div
+              class="d-flex justify-content-center align-items-center mb-3"
+              style="gap: 10px"
+            >
+              <a href="#" class="small" id="forget_pass_link"
+                >Forgot password?</a
+              >
+              <a href="#" class="small" id="register_Link">Register</a>
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
-            <div
-              id="loginError"
-              class="text-danger mt-2 small"
-              style="display: none"
-            >
-              Invalid username or password.
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTER PAGE -->
+    <section id="view-register" class="view" style="display: none">
+      <div
+        class="d-flex justify-content-center align-items-center"
+        style="min-height: 100vh"
+      >
+        <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%">
+          <!-- Logo + Brand -->
+          <div class="text-center mb-4">
+            <div class="mb-2">
+              <i class="fa-solid fa-shield-halved fa-2x text-primary"></i>
+            </div>
+            <h4 class="fw-bold mb-0">
+              Crime<span class="text-primary">Management</span>
+            </h4>
+            <small class="text-muted">Police Intelligence</small>
+          </div>
+
+          <!-- Registration Form -->
+          <form id="registerForm">
+            <div class="mb-3">
+              <label class="form-label"
+                >Username<span class="mandatory_field">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="registerUsername"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label"
+                >Email<span class="mandatory_field">*</span></label
+              >
+              <input
+                type="email"
+                class="form-control"
+                id="registerEmail"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label"
+                >Password<span class="mandatory_field">*</span></label
+              >
+              <input
+                type="password"
+                class="form-control"
+                id="registerPassword"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label"
+                >Confirm Password<span class="mandatory_field">*</span></label
+              >
+              <input
+                type="password"
+                class="form-control"
+                id="confirmPassword"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              Register
+            </button>
+            <div class="text-center mt-3">
+              <a
+                href="#"
+                class="small"
+                id="showLoginFromRegister"
+                style="text-decoration: none"
+                >Already have an account? Login</a
+              >
             </div>
           </form>
         </div>
       </div>
     </section>
 
+    <!-- FORGOT PASSWORD PAGE -->
+    <section id="view-forgot-password" class="view" style="display: none">
+      <div
+        class="d-flex justify-content-center align-items-center"
+        style="min-height: 100vh"
+      >
+        <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%">
+          <!-- Logo + Brand -->
+          <div class="text-center mb-4">
+            <div class="mb-2">
+              <i class="fa-solid fa-shield-halved fa-2x text-primary"></i>
+            </div>
+            <h4 class="fw-bold mb-0">
+              Crime<span class="text-primary">Management</span>
+            </h4>
+            <small class="text-muted">Police Intelligence</small>
+          </div>
+
+          <!-- Forgot Password Form -->
+          <form id="forgotPasswordForm">
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="forgotEmail"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="newPassword"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmNewPassword"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              Reset Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <!-- TOPBAR -->
-    <header class="topbar d-flex align-items-center justify-content-between">
+    <header class="topbar" id="topbar">
       <div class="d-flex align-items-center gap-3">
         <button
           id="btnToggle"
@@ -128,21 +277,20 @@
               href="#"
               aria-expanded="false"
             >
-              <img
-                src="https://i.pravatar.cc/40"
-                alt="avatar"
-                class="rounded-circle"
-                width="36"
-                height="36"
-              />
+              <div
+                class="user-avatar-placeholder rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                style="width: 36px; height: 36px"
+              >
+                <i class="fa-solid fa-user fa-lg"></i>
+              </div>
               <div class="ms-2 d-none d-sm-block">
-                <div style="font-weight: 600">Inspector D</div>
-                <small class="muted">Central Station</small>
+                <div style="font-weight: 600" id="username_id">Inspector D</div>
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#">Profile</a></li>
-              <li><a class="dropdown-item" href="#">Settings</a></li>
+              <li>
+                <a class="dropdown-item" href="#" id="profile_view">Profile</a>
+              </li>
               <li><hr class="dropdown-divider" /></li>
               <li>
                 <a class="dropdown-item text-danger" href="#" id="log_out_page"
@@ -198,13 +346,13 @@
               ><span class="nav-text ms-2">Investigations</span></a
             >
           </div>
-          <div class="nav-item mb-1">
+          <div class="nav-item mb-1" style="display: none">
             <a href="#" class="nav-link crime_evidence" data-view="evidence"
               ><i class="fa-solid fa-box-archive"></i
               ><span class="nav-text ms-2">Evidence</span></a
             >
           </div>
-          <div class="nav-item mb-1">
+          <div class="nav-item mb-1" style="display: none">
             <a href="#" class="nav-link crime_criminals" data-view="criminals"
               ><i class="fa-solid fa-user-secret"></i
               ><span class="nav-text ms-2">Criminals</span></a
@@ -216,7 +364,7 @@
               ><span class="nav-text ms-2">Users</span></a
             >
           </div>
-          <div class="nav-item mb-1">
+          <div class="nav-item mb-1" style="display: none">
             <a
               href="#"
               class="nav-link crime_notificatinos"
@@ -225,7 +373,7 @@
               ><span class="nav-text ms-2">Notifications</span></a
             >
           </div>
-          <div class="nav-item mb-1">
+          <div class="nav-item mb-1" style="display: none">
             <a href="#" class="nav-link crime_audit_logs" data-view="logs"
               ><i class="fa-solid fa-file-lines"></i
               ><span class="nav-text ms-2">Audit Logs</span></a
@@ -379,7 +527,7 @@
                   <canvas id="chartTrends" height="140"></canvas>
                 </div>
 
-                <div class="card p-3">
+                <div class="card p-3" style="display: none">
                   <div
                     class="d-flex justify-content-between align-items-center mb-2"
                   >
@@ -460,20 +608,14 @@
               </div>
             </div>
 
-            <div class="card p-3 mb-3">
+            <!-- <div class="card p-3 mb-3">
               <form id="filterForm" class="row g-2">
                 <div class="col-md-3">
-                  <select class="form-select" id="filterType">
+                  <select class="form-select" id="crime_filterType">
                     <option value="">All types</option>
                     <option value="theft">Theft</option>
                     <option value="assault">Assault</option>
                   </select>
-                </div>
-                <div class="col-md-3">
-                  <input type="date" id="filterFrom" class="form-control" />
-                </div>
-                <div class="col-md-3">
-                  <input type="date" id="filterTo" class="form-control" />
                 </div>
                 <div class="col-md-3 text-end">
                   <button
@@ -484,24 +626,14 @@
                   </button>
                 </div>
               </form>
-            </div>
+            </div> -->
 
             <div class="card p-3">
               <div class="table-responsive">
-                <table class="table table-hover table-sm align-middle">
-                  <thead>
-                    <tr>
-                      <th>Report #</th>
-                      <th>Title</th>
-                      <th>Type</th>
-                      <th>Location</th>
-                      <th>Reported</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblReports"></tbody>
-                </table>
+                <table
+                  class="table table-hover table-sm align-middle"
+                  id="tblReports"
+                ></table>
               </div>
               <div class="d-flex justify-content-end mt-2">
                 <nav>
@@ -521,39 +653,39 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div>
                 <h4 class="mb-0">Investigations</h4>
-                <small class="muted">Workflow & assignments</small>
               </div>
-              <div>
+              <!-- <div>
                 <button
                   class="btn btn-sm btn-primary"
                   id="openNewInvestigation"
                 >
                   <i class="fa-solid fa-plus me-1"></i> New Investigation
                 </button>
-              </div>
+              </div> -->
             </div>
 
             <div class="row g-3">
               <div class="col-lg-12">
                 <div class="card p-3">
-                  <h6 class="mb-2">Open Investigations</h6>
                   <div class="table-responsive">
-                    <table class="table table-sm">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Case</th>
-                          <th>Lead</th>
-                          <th>Stage</th>
-                          <th>Updated</th>
-                        </tr>
-                      </thead>
-                      <tbody id="tblInvestigations"></tbody>
-                    </table>
+                    <table
+                      class="table table-sm"
+                      id="tblInvestigations"
+                    ></table>
+                  </div>
+                  <div class="d-flex justify-content-end mt-2">
+                    <nav>
+                      <ul
+                        class="pagination pagination-sm mb-0"
+                        id="invest_Pagination"
+                      >
+                        <!-- Page buttons will be injected here -->
+                      </ul>
+                    </nav>
                   </div>
                 </div>
               </div>
-              <div class="col-lg-5" style="display: none;">
+              <div class="col-lg-5" style="display: none">
                 <div class="card p-3">
                   <h6 class="mb-2">Activity Timeline</h6>
                   <!-- Activity Timeline -->
@@ -704,11 +836,6 @@
                 <h4 class="mb-0">User Management</h4>
                 <small class="muted">Create officers and roles</small>
               </div>
-              <div>
-                <button class="btn btn-sm btn-primary" id="openAddUser">
-                  <i class="fa-solid fa-user-plus me-1"></i> New User
-                </button>
-              </div>
             </div>
 
             <div class="card p-3">
@@ -791,7 +918,7 @@
     >
       <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
         <div class="modal-content">
-          <form id="formNewReport">
+          <div id="formNewReport">
             <div class="modal-header">
               <h5 class="modal-title">New Crime Report</h5>
               <button
@@ -802,13 +929,23 @@
             </div>
             <div class="modal-body">
               <div class="row g-3">
-                <div class="col-md-8">
-                  <label class="form-label">Title</label
-                  ><input class="form-control" name="title" required />
+                <div class="col-md-6">
+                  <label class="form-label">Complaint Name</label
+                  ><input
+                    class="form-control"
+                    name="title"
+                    required
+                    id="complain_name"
+                  />
                 </div>
-                <div class="col-md-4">
-                  <label class="form-label">Type</label
-                  ><select class="form-select" name="type" required>
+                <div class="col-md-6">
+                  <label class="form-label">Crime Type</label
+                  ><select
+                    class="form-select"
+                    name="type"
+                    required
+                    id="crime_type"
+                  >
                     <option value="">Select</option>
                     <option value="theft">Theft</option>
                     <option value="assault">Assault</option>
@@ -816,20 +953,28 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Location</label
+                  <label class="form-label">Jurisdiction</label
+                  ><select
+                    class="form-select"
+                    name="type"
+                    required
+                    id="crime_jurisdiction"
+                  >
+                    <option value="">Select</option>
+                    <option value="theft">Theft</option>
+                    <option value="assault">Assault</option>
+                    <option value="fraud">Fraud</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Crime Report Date</label
                   ><input
                     class="form-control"
-                    name="location"
-                    placeholder="Address or area"
+                    type="text"
+                    name="crimeReportDate"
+                    required
+                    id="crime_report_date"
                   />
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label">Latitude</label
-                  ><input class="form-control" name="lat" />
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label">Longitude</label
-                  ><input class="form-control" name="lon" />
                 </div>
                 <div class="col-12">
                   <label class="form-label">Description</label
@@ -837,23 +982,15 @@
                     class="form-control"
                     name="description"
                     rows="4"
+                    id="crime_description"
                   ></textarea>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Reported By</label
-                  ><input class="form-control" name="reportedBy" />
-                </div>
-                <div class="col-md-6">
                   <label class="form-label">Contact</label
-                  ><input class="form-control" name="contact" />
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Evidence</label
                   ><input
                     class="form-control"
-                    type="file"
-                    name="attachments"
-                    multiple
+                    name="contact"
+                    id="crime_raiser_no"
                   />
                 </div>
               </div>
@@ -862,59 +999,185 @@
               <button class="btn btn-light" data-bs-dismiss="modal">
                 Cancel
               </button>
-              <button class="btn btn-primary" type="submit">Save Report</button>
+              <button class="btn btn-primary" type="button" id="save_crime">
+                Save Report
+              </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Evidence Modal -->
-    <div class="modal fade" id="modalEvidence" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-md modal-fullscreen-sm-down">
+    <!-- Modal for Viewing Investigation Details -->
+    <div
+      class="modal fade"
+      id="modalViewInvestigation"
+      tabindex="-1"
+      aria-labelledby="modalViewInvestigationLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
-          <form id="formEvidence">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalViewInvestigationLabel">
+              Investigation Details
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <p>
+                  <strong>Complaint Name:</strong>
+                  <span id="viewComplaintName"></span>
+                </p>
+                <p>
+                  <strong>Victim Name:</strong>
+                  <span id="viewVictimName"></span>
+                </p>
+                <p>
+                  <strong>Crime Type:</strong> <span id="viewCrimeType"></span>
+                </p>
+                <p>
+                  <strong>Location:</strong> <span id="viewLocation"></span>
+                </p>
+                <p><strong>Status:</strong> <span id="viewStatus"></span></p>
+              </div>
+              <div class="col-md-6">
+                <p>
+                  <strong>Start Date:</strong> <span id="viewStartDate"></span>
+                </p>
+                <p><strong>End Date:</strong> <span id="viewEndDate"></span></p>
+              </div>
+            </div>
+            <hr />
+            <h6>Description:</h6>
+            <p id="viewDescription"></p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Updating Investigation Details -->
+    <div
+      class="modal fade"
+      id="modalUpdateInvestigation"
+      tabindex="-1"
+      aria-labelledby="modalUpdateInvestigationLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form id="formUpdateInvestigation">
             <div class="modal-header">
-              <h5 class="modal-title">Add Evidence</h5>
+              <h5 class="modal-title" id="modalUpdateInvestigationLabel">
+                Update Investigation
+              </h5>
               <button
+                type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
                 aria-label="Close"
               ></button>
             </div>
             <div class="modal-body">
-              <div class="mb-2">
-                <label class="form-label">Type</label
-                ><select class="form-select" name="etype" required>
-                  <option value="">Select</option>
-                  <option>Photo</option>
-                  <option>Document</option>
-                  <option>Video</option>
-                </select>
+              <input type="hidden" id="updateInvestigationIdentifier" />
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="updateComplaintName" class="form-label"
+                    >Complaint Name</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateComplaintName"
+                    readonly
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="updateCrimeType" class="form-label"
+                    >Crime Type</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateCrimeType"
+                    readonly
+                  />
+                </div>
               </div>
-              <div class="mb-2">
-                <label class="form-label">Associated Case</label
-                ><input class="form-control" name="caseId" />
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="updatePriority" class="form-label"
+                    >Priority</label
+                  >
+                  <select class="form-select" id="updatePriority">
+                    <option value="">Select Priority</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="updateStatus" class="form-label">Status</label>
+                  <select class="form-select" id="updateStatus">
+                    <!-- Options will be loaded dynamically -->
+                  </select>
+                </div>
               </div>
-              <div class="mb-2">
-                <label class="form-label">Description</label
-                ><textarea
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="updateIoOfficer" class="form-label"
+                    >IO Officer</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="updateIoOfficer"
+                    readonly
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label for="updateEndDate" class="form-label">End Date</label>
+                  <input type="date" class="form-control" id="updateEndDate" />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="updateDescription" class="form-label"
+                  >Investigation Description</label
+                >
+                <textarea
                   class="form-control"
-                  name="eDesc"
-                  rows="3"
+                  id="updateDescription"
+                  rows="4"
                 ></textarea>
               </div>
-              <div class="mb-2">
-                <label class="form-label">Upload</label
-                ><input class="form-control" type="file" name="efile" />
-              </div>
+              <!-- Add more fields as necessary for update -->
             </div>
             <div class="modal-footer">
-              <button class="btn btn-light" data-bs-dismiss="modal">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
                 Close
               </button>
-              <button class="btn btn-primary" type="submit">
-                Add Evidence
+              <button type="submit" class="btn btn-primary">
+                Save changes
               </button>
             </div>
           </form>
@@ -922,16 +1185,67 @@
       </div>
     </div>
 
-    <!-- Generic confirm modal -->
-    <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-sm modal-fullscreen-sm-down">
+    <!---error message modal pop up-->
+    <div
+      class="modal fade"
+      id="error_modal"
+      tabindex="-1"
+      aria-labelledby="error_modal_Label"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-          <div class="modal-body" id="confirmBody"></div>
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="error_modal_Label">Error</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body error_body_txt" id="error_body_txt"></div>
           <div class="modal-footer">
-            <button class="btn btn-light" data-bs-dismiss="modal">
-              Cancel
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
             </button>
-            <button class="btn btn-danger" id="confirmOk">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!---success message modal pop up-->
+    <div
+      class="modal fade"
+      id="success_modal"
+      tabindex="-1"
+      aria-labelledby="success_modal_Label"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="success_modal_Label">Success</h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body error_body_txt" id="success_body_txt"></div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -941,6 +1255,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

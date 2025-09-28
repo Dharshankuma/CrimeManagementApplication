@@ -8,7 +8,7 @@ namespace CrimeManagement.Services
 {
     public interface IUserService
     {
-        Task<UserLoginDetails> DoGetLoginUserDetails(string emailId);
+        Task<UserLoginDetails> DoGetLoginUserDetails(string userName);
         Task<Data<List<UserDTO>>> DoGetUserDetails(string identifier);
         Task DoUpdateUserDetails(UserDTO objdto);
     }
@@ -24,19 +24,19 @@ namespace CrimeManagement.Services
             _environment = environment;
             _config = config;
         }
-        public async Task<UserLoginDetails> DoGetLoginUserDetails(string emailId)
+        public async Task<UserLoginDetails> DoGetLoginUserDetails(string userName)
         {
-            if (string.IsNullOrWhiteSpace(emailId))
+            if (string.IsNullOrWhiteSpace(userName))
                 return null;
 
             try
             {
                 var userData = await (from user in _db.UserMasters
                                       join roledata in _db.Roles on user.RoleId equals roledata.RoleId into roledatatemp
-                                      from role in roledatatemp
+                                      from role in roledatatemp.DefaultIfEmpty()
                                       join desgdata in _db.DesignationMasters on user.DesignationId equals desgdata.DesignationId into desgdatatemp
-                                      from desg in desgdatatemp
-                                      where user.EmailId.ToLower() == emailId.ToLower() && user.Status == "Active"
+                                      from desg in desgdatatemp.DefaultIfEmpty()
+                                      where user.UserName.ToLower() == userName.ToLower() && user.Status == "Active"
                                       select new UserLoginDetails
                                       {
                                           UserName = user.UserName,
@@ -50,7 +50,9 @@ namespace CrimeManagement.Services
                                           ProfilePhotoPath = user.ProfilePhotoPath,
                                           Jurisdiction = user.Jurisdiction,
                                           RoleId = user.RoleId,
-                                          DesignationId = user.DesignationId
+                                          DesignationId = user.DesignationId,
+                                          HashPassword = user.HashPassword,
+                                          userIdentifier = user.Identifier
                                       }).FirstOrDefaultAsync();
 
                 return userData;

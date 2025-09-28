@@ -74,7 +74,7 @@ builder.Services.AddDbContext<CrimeDbContext>(options =>
 
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<Program>()   // only scan your assembly
-    .AddClasses()                // pick all classes
+    .AddClasses(classes => classes.InNamespaces("CrimeManagement.Services"))
     .AsImplementedInterfaces()   // register by interface
     .WithScopedLifetime());
 

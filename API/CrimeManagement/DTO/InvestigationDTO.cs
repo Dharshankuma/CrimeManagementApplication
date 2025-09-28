@@ -5,6 +5,20 @@ namespace CrimeManagement.DTO
     
     public class InvestigationDTO
     {
+        public string? crimeType { get; set; }
+
+        public string? complaintName { get; set; }
+
+        public string? complaintDescription { get; set; }
+        
+        public string? complaintDateReported { get; set; }
+
+        public string? statusName { get; set; }
+
+        public string? complaintRaiseName { get; set; }
+
+        public string? location { get; set; }
+
         public string? userIdentifier { get; set; }
 
         public string? Identifier { get; set; }
@@ -64,6 +78,8 @@ namespace CrimeManagement.DTO
         public string? crimeType { get; set; }
         public string? crimeStatus { get; set; }
         public string? lastUpdatedDate { get; set; }
+        public string? Location { get; set; }
+        public int? statusId { get; set; }
     }
 
     public class InvestigationRequestviewDTO

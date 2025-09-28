@@ -39,10 +39,10 @@ namespace CrimeManagement.Controllers
 
             try
             {
-                if (string.IsNullOrWhiteSpace(objdto.emailId) || string.IsNullOrWhiteSpace(objdto.password))
-                    throw new CustomException("Email Id or Password is missing");
+                if (string.IsNullOrWhiteSpace(objdto.userName) || string.IsNullOrWhiteSpace(objdto.password))
+                    throw new CustomException("Username or Password is missing");
 
-                var userDetails = await DoGetUserData(objdto.emailId);
+                var userDetails = await DoGetUserData(objdto.userName);
                 if (userDetails == null)
                     throw new CustomException("User does not exist");
 
@@ -57,7 +57,7 @@ namespace CrimeManagement.Controllers
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new Claim("Id", userDetails.userIdentifier.ToString()),
-            new Claim("Name", $"{userDetails.Firstname} {userDetails.Lastname}"),
+            new Claim("UserName", $"{userDetails.UserName}"),
             new Claim("Email", userDetails.EmailId)
         };
 
@@ -177,9 +177,9 @@ namespace CrimeManagement.Controllers
         }
 
 
-        private async Task<UserLoginDetails> DoGetUserData(string emailId)
+        private async Task<UserLoginDetails> DoGetUserData(string userName)
         {
-            var userDetails = await _userService.DoGetLoginUserDetails(emailId);
+            var userDetails = await _userService.DoGetLoginUserDetails(userName);
             return userDetails;
         }
     }

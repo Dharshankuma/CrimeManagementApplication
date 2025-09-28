@@ -19,7 +19,7 @@ namespace CrimeManagement.Controllers
         }
 
 
-        [HttpGet]
+        [HttpPost]
         [Route("InvestigationGridDetails")]
         public async Task<IActionResult> DoGetInvestigatonsOverviewDetails(InvestigationRequestviewDTO objdto)
         {

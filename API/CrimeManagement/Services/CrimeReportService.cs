@@ -47,11 +47,9 @@ namespace CrimeManagement.Services
                             from jurisdiction in jurisdictiontemp.DefaultIfEmpty()
                             join crimeTypedata in _db.CrimeTypes on crime.CrimeTypeId equals crimeTypedata.CrimeId into crimeTypetemp
                             from crimeType in crimeTypetemp.DefaultIfEmpty()
-                            where (roleId == 1 || crime.CreatedBy == userId) &&
-                                  (string.IsNullOrEmpty(objdto.crimeType) || crimeType.CrimeName == objdto.crimeType) &&
-                                  (string.IsNullOrEmpty(objdto.crimeIdentifier) || crime.Identifier == objdto.crimeIdentifier) &&
-                                  (string.IsNullOrEmpty(objdto.reportDate) ||
-                                   EF.Functions.DateDiffDay(crime.DateReported, DateTime.Parse(objdto.reportDate)) == 0)
+                            join stsdata in _db.Statusmasters on crime.StatusId equals stsdata.Statusid into stsdatatemp
+                            from sts in stsdatatemp.DefaultIfEmpty()
+                            where (roleId == 1 || crime.CreatedBy == userId)
                             select new CrimeReportViewDTO
                             {
                                 reportIdentifer = crime.Identifier,
@@ -59,6 +57,7 @@ namespace CrimeManagement.Services
                                 jurisdictionName = jurisdiction.JurisdictionName,
                                 crimeType = crimeType.CrimeName,
                                 crimeStatus = Convert.ToString(crime.StatusId),
+                                crimeStatusStr = sts.Status,
                                 crimeReportDate = crime.DateReported.HasValue
                                                  ? crime.DateReported.Value.ToString("dd-MM-yyyy")
                                                  : string.Empty
@@ -80,11 +79,22 @@ namespace CrimeManagement.Services
                     };
                 }
 
-                var crimeReports = await query.ToListAsync();
+                var result = await query.ToListAsync();
+
+                var totalCount = result.Count();
+
+                int pageNumber = objdto.PageNumber > 0 ? objdto.PageNumber : 1;
+                int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
+
+                var pagedResult = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
                 return new Data<List<CrimeReportViewDTO>>
                 {
-                    data = crimeReports
+                    data = pagedResult,
+                    totalCount = totalCount
                 };
             }
             catch (CustomException ex)
@@ -139,11 +149,11 @@ namespace CrimeManagement.Services
                     CrimeDescription = objdto.CrimeDescription,
                     PhoneNumber = objdto.PhoneNumber,
                     DateReported = !string.IsNullOrEmpty(objdto.dateReportString)
-                                    ? DateTime.Parse(objdto.dateReportString)
+                                    ? Helper.CustomHelper.ParseDate(objdto.dateReportString)
                                     : null,
                     CreatedBy = userId,
                     CreatedOn = DateTime.Now,
-                    StatusId = await GetStatusIdByName("Open")
+                    StatusId = await GetStatusIdByName("Under Investigation")
                 };
 
                 await _db.ComplaintRequests.AddAsync(complaint);
@@ -171,13 +181,15 @@ namespace CrimeManagement.Services
         private async Task AllocateIoOfficerandCreateInvestigation(ComplaintRequest complaint)
         {
             // Find IO officer for jurisdiction
-            var ioOfficer = await _db.IojurisdictionAssigns
-                .Where(ioj => ioj.JurisdictionId == complaint.JurisdictionId)
-                .Join(_db.UserMasters,
-                      ioj => ioj.UserId,
-                      um => um.UserId,
-                      (ioj, um) => um)
-                .FirstOrDefaultAsync();
+            //var ioOfficer = await _db.IojurisdictionAssigns
+            //    .Where(ioj => ioj.JurisdictionId == complaint.JurisdictionId)
+            //    .Join(_db.UserMasters,
+            //          ioj => ioj.UserId,
+            //          um => um.UserId,
+            //          (ioj, um) => um)
+            //    .FirstOrDefaultAsync();
+
+            var ioOfficer = await _db.IojurisdictionAssigns.Where(x => x.JurisdictionId == complaint.JurisdictionId).Select(x=>x.UserId).FirstOrDefaultAsync();
 
             if (ioOfficer == null)
                 throw new CustomException("No IO Officer found for the given jurisdiction");
@@ -187,7 +199,7 @@ namespace CrimeManagement.Services
             {
                 Identifier = Helper.CustomHelper.DoGenerateGuid(),
                 ComplaintId = complaint.ComplaintRequestId,
-                IoOfficerId = ioOfficer.UserId,
+                IoOfficerId = ioOfficer,
                 StartDate = DateTime.Now,
                 Priority = "Medium", // default
                 StatusId = await GetStatusIdByName("Under Investigation"),
@@ -199,7 +211,7 @@ namespace CrimeManagement.Services
             await _db.SaveChangesAsync();
 
             // Update complaint with IO & Investigation info
-            complaint.IoofficerId = ioOfficer.UserId;
+            complaint.IoofficerId = ioOfficer;
             complaint.InvestigationId = investigation.InvestigationId;
             complaint.ModifyBy = complaint.CreatedBy;
             complaint.ModifyOn = DateTime.Now;
@@ -212,7 +224,7 @@ namespace CrimeManagement.Services
             {
                 Identifier = Helper.CustomHelper.DoGenerateGuid(),
                 ComplaintId = complaint.ComplaintRequestId,
-                UserId = ioOfficer.UserId,
+                UserId = ioOfficer,
                 ComplaintStatus = complaint.StatusId,
                 CreatedBy = complaint.CreatedBy,
                 CreatedOn = DateTime.Now
@@ -222,9 +234,7 @@ namespace CrimeManagement.Services
             await _db.SaveChangesAsync();
 
             // Send notification
-            await SendNotification(ioOfficer.UserId,
-                "New Complaint Assigned",
-                $"A new complaint (ID: {complaint.Identifier}) has been assigned to you for investigation.");
+            //await SendNotification(ioOfficer.UserId,"New Complaint Assigned",$"A new complaint (ID: {complaint.Identifier}) has been assigned to you for investigation.");
         }
 
         private async Task<int> GetStatusIdByName(string statusName)

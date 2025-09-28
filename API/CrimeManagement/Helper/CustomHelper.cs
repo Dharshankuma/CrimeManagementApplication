@@ -36,58 +36,62 @@ namespace CrimeManagement.Helper
             }
             return bytes;
         }
-        public static string Encrypt(string text)
+        public static string Encrypt(string plainText)
         {
             using (Aes aes = Aes.Create())
             {
                 aes.Key = _encryptionKey;
                 aes.GenerateIV();
 
-                ICryptoTransform encrypt = aes.CreateEncryptor(aes.Key, aes.IV);
-
                 using (MemoryStream ms = new MemoryStream())
                 {
+                    // First write IV
                     ms.Write(aes.IV, 0, aes.IV.Length);
-                    using (CryptoStream cs = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(cs))
-                        {
-                            sw.Write(text);
-                        }
 
-                        return Convert.ToBase64String(ms.ToArray());
+                    using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (StreamWriter sw = new StreamWriter(cs))
+                    {
+                        sw.Write(plainText);
                     }
+
+                    return Convert.ToBase64String(ms.ToArray());
                 }
             }
         }
+
         public static string Decrypt(string cipherText)
         {
-            byte[] cipher = Convert.FromBase64String(cipherText);
+            byte[] fullCipher = Convert.FromBase64String(cipherText);
+
             using (Aes aes = Aes.Create())
             {
                 aes.Key = _encryptionKey;
-                byte[] iv = new byte[16];
 
-                Array.Copy(cipher, 0, iv, 0, iv.Length);
+                byte[] iv = new byte[aes.BlockSize / 8]; // AES block size is 16 bytes
+                byte[] cipher = new byte[fullCipher.Length - iv.Length];
+
+                Array.Copy(fullCipher, 0, iv, 0, iv.Length);
+                Array.Copy(fullCipher, iv.Length, cipher, 0, cipher.Length);
+
                 aes.IV = iv;
 
-                byte[] acutal = new byte[cipher.Length - iv.Length];
-                Array.Copy(cipher, iv.Length, acutal, 0, acutal.Length);
-
-                ICryptoTransform decrypt = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (MemoryStream ms = new MemoryStream())
+                using (MemoryStream ms = new MemoryStream(cipher))
+                using (CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                using (StreamReader sr = new StreamReader(cs))
                 {
-                    using (CryptoStream cs = new CryptoStream(ms, decrypt, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader sr = new StreamReader(cs))
-                        {
-                            return sr.ReadToEnd();
-                        }
-                    }
+                    return sr.ReadToEnd();
                 }
             }
         }
+
+        public static DateTime? ParseDate(string date)
+        {
+            if (string.IsNullOrEmpty(date))
+                return null;
+
+            return DateTime.ParseExact(date, "dd-MM-yyyy", null);
+        }
+
         public static string DoGenerateGuid()
         {
             return Guid.NewGuid().ToString();

@@ -25,88 +25,102 @@ namespace CrimeManagement.Services
         {
             try
             {
-                var user = await _db.UserMasters.Where(u => u.Identifier == objdto.userIdentifier).FirstOrDefaultAsync();
-                if(user == null)
-                {
+                // Step 1: Get user
+                var user = await _db.UserMasters
+                                    .FirstOrDefaultAsync(u => u.Identifier == objdto.userIdentifier);
+                if (user == null)
                     throw new CustomException("Invalid User");
-                }
 
+                // Step 2: Build base query (keep dates as DateTime?)
                 var query = from inv in _db.Investigations
-                            join cmpdata in _db.ComplaintRequests on inv.ComplaintId equals cmpdata.ComplaintRequestId into cmpdatatemp
-                            from cmp in cmpdatatemp.DefaultIfEmpty()
-                            join crmdata in _db.CrimeTypes on inv.CrimeId equals crmdata.CrimeId into crmdatatemp
-                            from crm in crmdatatemp.DefaultIfEmpty()
-                            join stsdata in _db.Statusmasters on inv.StatusId equals stsdata.Statusid into stsdatatemp
-                            from sts in stsdatatemp.DefaultIfEmpty()
-                            select new InvestigationViewDTO
+                            join cmp in _db.ComplaintRequests on inv.ComplaintId equals cmp.ComplaintRequestId into cmpTemp
+                            from cmp in cmpTemp.DefaultIfEmpty()
+                            join crm in _db.CrimeTypes on cmp.CrimeTypeId equals crm.CrimeId into crmTemp
+                            from crm in crmTemp.DefaultIfEmpty()
+                            join jurisdictiondata in _db.JurisdictionMasters on cmp.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
+                            from jurisdiction in jurisdictiontemp.DefaultIfEmpty()
+                            join sts in _db.Statusmasters on inv.StatusId equals sts.Statusid into stsTemp
+                            from sts in stsTemp.DefaultIfEmpty()
+                            select new
                             {
-                                investigationIdentifer = inv.Identifier,
-                                investigationId = inv.InvestigationId.ToString(),
-                                complaintName = cmp != null ? cmp.ComplaintName : null,
-                                crimeType = crm != null ? crm.CrimeName : null,
-                                crimeStatus = sts != null ? sts.Status : null,
-                                lastUpdatedDate = inv.ModifyOn != null ? inv.ModifyOn.Value.ToString("dd-MM-yyyy")
-                                                                       : inv.CreatedOn != null ? inv.CreatedOn.Value.ToString("dd-MM-yyyy") : null,
+                                inv.Identifier,
+                                inv.InvestigationId,
+                                ComplaintName = cmp != null ? cmp.ComplaintName : null,
+                                CrimeType = crm != null ? crm.CrimeName : null,
+                                CrimeStatus = sts != null ? sts.Status : null,
+                                statusId = inv.StatusId,
+                                LastUpdatedDate = inv.ModifyOn ?? inv.CreatedOn,
+                                Location = jurisdiction.JurisdictionName
                             };
 
-                // Execute query asynchronously
-                
-
-                if(user.RoleId == 3)
+                // Step 3: Filter by IoOfficer if role is 3
+                if (user.RoleId == 3)
                 {
                     query = query.Where(x => _db.Investigations
-                                .Where(i => i.IoOfficerId == user.UserId)
-                                .Select(i => i.InvestigationId)
-                                .Contains(Convert.ToInt32(x.investigationId)));
+                                                .Where(i => i.IoOfficerId == user.UserId)
+                                                .Select(i => i.InvestigationId)
+                                                .Contains(x.InvestigationId));
                 }
 
+                // Step 4: Apply sorting
                 if (!string.IsNullOrEmpty(objdto.columnName))
                 {
                     bool ascending = objdto.sortOrder ?? true;
-
                     query = objdto.columnName.ToLower() switch
                     {
-                        "complaintname" => ascending ? query.OrderBy(x => x.complaintName) : query.OrderByDescending(x => x.complaintName),
-                        "crimetype" => ascending ? query.OrderBy(x => x.crimeType) : query.OrderByDescending(x => x.crimeType),
-                        "crimestatus" => ascending ? query.OrderBy(x => x.crimeStatus) : query.OrderByDescending(x => x.crimeStatus),
-                        "lastupdateddate" => ascending ? query.OrderBy(x => x.lastUpdatedDate) : query.OrderByDescending(x => x.lastUpdatedDate),
-                        _ => query.OrderByDescending(x => x.lastUpdatedDate)
+                        "complaintname" => ascending ? query.OrderBy(x => x.ComplaintName) : query.OrderByDescending(x => x.ComplaintName),
+                        "crimetype" => ascending ? query.OrderBy(x => x.CrimeType) : query.OrderByDescending(x => x.CrimeType),
+                        "crimestatus" => ascending ? query.OrderBy(x => x.CrimeStatus) : query.OrderByDescending(x => x.CrimeStatus),
+                        "lastupdateddate" => ascending ? query.OrderBy(x => x.LastUpdatedDate) : query.OrderByDescending(x => x.LastUpdatedDate),
+                        _ => query.OrderByDescending(x => x.LastUpdatedDate)
                     };
                 }
                 else
                 {
-                    // Default sorting
-                    query = query.OrderByDescending(x => x.lastUpdatedDate);
+                    query = query.OrderByDescending(x => x.LastUpdatedDate);
                 }
 
-                var result = await query.ToListAsync();
+                // Step 5: Get total count
+                var totalCount = await query.CountAsync();
 
-                var totalCount = result.Count();
-
+                // Step 6: Apply paging
                 int pageNumber = objdto.PageNumber > 0 ? objdto.PageNumber : 1;
                 int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
 
-                var pagedResult = await query
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                var pagedData = await query
+                                    .Skip((pageNumber - 1) * pageSize)
+                                    .Take(pageSize)
+                                    .ToListAsync();
 
+                // Step 7: Map to DTO and format date in memory
+                var result = pagedData.Select(x => new InvestigationViewDTO
+                {
+                    investigationIdentifer = x.Identifier,
+                    investigationId = x.InvestigationId.ToString(),
+                    complaintName = x.ComplaintName,
+                    crimeType = x.CrimeType,
+                    crimeStatus = x.CrimeStatus,
+                    lastUpdatedDate = x.LastUpdatedDate?.ToString("dd-MM-yyyy") ?? string.Empty,
+                    Location = x.Location,
+                    statusId = x.statusId
+                }).ToList();
 
                 return new Data<List<InvestigationViewDTO>>
                 {
-                    data = pagedResult,
+                    data = result,
                     totalCount = totalCount
                 };
             }
-            catch(CustomException ex)
+            catch (CustomException ex)
             {
                 throw ex;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
         }
+
 
         public async Task<InvestigationDTO> DoGetInvestigationDetailsById(string identifier)
         {
@@ -115,10 +129,14 @@ namespace CrimeManagement.Services
                 var investigation = await (from inv in _db.Investigations
                                            join c in _db.ComplaintRequests on inv.ComplaintId equals c.ComplaintRequestId into cgroup
                                            from complaint in cgroup.DefaultIfEmpty()
-                                           join crime in _db.CrimeTypes on inv.CrimeId equals crime.CrimeId into crgroup
+                                           join jurisdictiondata in _db.JurisdictionMasters on complaint.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
+                                           from jurisdiction in jurisdictiontemp.DefaultIfEmpty()
+                                           join crime in _db.CrimeTypes on complaint.CrimeTypeId equals crime.CrimeId into crgroup
                                            from cr in crgroup.DefaultIfEmpty()
                                            join status in _db.Statusmasters on inv.StatusId equals status.Statusid into stgroup
                                            from st in stgroup.DefaultIfEmpty()
+                                           join usdata in _db.UserMasters on complaint.CreatedBy equals usdata.UserId into usdatatemp
+                                           from us in usdatatemp.DefaultIfEmpty()
                                            where inv.Identifier == identifier
                                            select new InvestigationDTO
                                            {
@@ -143,7 +161,13 @@ namespace CrimeManagement.Services
                                                CreatedBy = inv.CreatedBy,
                                                CreatedOn = inv.CreatedOn,
                                                ModifyBy = inv.ModifyBy,
-                                               ModifyOn = inv.ModifyOn
+                                               ModifyOn = inv.ModifyOn,
+                                               complaintDescription = complaint.CrimeDescription,
+                                               complaintRaiseName = us.UserName,
+                                               location = jurisdiction.JurisdictionName,
+                                               crimeType = cr.CrimeName,
+                                               complaintName = complaint.ComplaintName,
+                                               statusName = st.Status
                                            }).FirstOrDefaultAsync();
 
                 return investigation;

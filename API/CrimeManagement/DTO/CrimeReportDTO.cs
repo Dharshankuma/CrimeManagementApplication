@@ -36,6 +36,7 @@
         public string? crimeReportDate { get; set; }
         public string? crimeType { get; set; }
         public string? crimeStatus { get; set; }
+        public string? crimeStatusStr { get; set; }
     }
 
     public class CrimeRequestviewDTO
@@ -46,6 +47,8 @@
         public bool? sortOrder { get; set; }
         public string? crimeIdentifier { get; set; }
         public string? userIdentifier { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
     }
 
 }
