@@ -522,6 +522,75 @@ async function DoGetConfiguration() {
   }
 }
 
+// ... (your existing app.js code) ...
+$("#forgotPasswordForm").on("submit", async function (e) {
+  e.preventDefault();
+  $("#loader").show();
+
+  try {
+    let userName = $("#forget_username").val().trim();
+    let newPassword = $("#newPassword").val().trim();
+    let confirmNewPassword = $("#confirmNewPassword").val().trim();
+
+    // Basic client-side validation
+    if (!userName || !newPassword || !confirmNewPassword) {
+      $("#error_body_txt").html("All fields are required.");
+      $("#error_modal").modal("show");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      $("#error_body_txt").html(
+        "New Password and Confirm New Password do not match."
+      );
+      $("#error_modal").modal("show");
+      return;
+    }
+
+    // Prepare data for the API call
+    const resetPasswordData = {
+      userName: userName,
+      password: newPassword,
+      confirmPassword: confirmNewPassword, // Your API expects this for validation
+    };
+
+    const response = await $.ajax({
+      url: `${APIUrl}/Login/ResetPassword`, // Your API endpoint
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(resetPasswordData),
+      dataType: "json",
+    });
+
+    console.log("Password reset successful:", response);
+
+    if (response.responseCode === 200) {
+      $("#success_body_txt").html(
+        response.responseMessage ||
+          "Password reset successfully! You can now log in with your new password."
+      );
+      $("#success_modal").modal("show");
+      showUnauthenticatedView("#view-login"); // Redirect to login page
+    } else {
+      // Handle non-200 responses if your API sends specific messages
+      $("#error_body_txt").html(
+        response.responseMessage ||
+          "Failed to reset password. Please try again."
+      );
+      $("#error_modal").modal("show");
+    }
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    $("#error_body_txt").html(
+      error.responseJSON?.responseMessage ||
+        "An error occurred while resetting password."
+    );
+    $("#error_modal").modal("show");
+  } finally {
+    $("#loader").hide();
+  }
+});
+
 $("#registerForm").on("submit", function (e) {
   registerUserDetails(e);
 });
@@ -1183,20 +1252,57 @@ $("#formEvidence").on("submit", function (e) {
 });
 
 // view / assign actions
+
+let complaintIdentifier = "";
 $(document).on("click", ".view-report", function () {
   const id = $(this).data("id");
-  const r = state.reports.find((x) => x.id === id);
-  if (r) {
-    $("#confirmBody").html(
-      `<h6>${escape(r.title)}</h6><p><strong>Case:</strong> ${
-        r.id
-      }<br><strong>Type:</strong> ${r.type}<br><strong>Location:</strong> ${
-        r.location
-      }</p>`
-    );
-    new bootstrap.Modal(document.getElementById("modalConfirm")).show();
-  }
+  fetchAndDisplayComplaintDetails(complaintIdentifier);
 });
+
+async function fetchAndDisplayComplaintDetails(identifier) {
+  try {
+    $("#loader").show();
+    const response = await $.ajax({
+      url: `${APIUrl}/CrimeReport/FetchComplaintDetails?identifier=${identifier}`,
+      method: "GET",
+      headers: { Authorization: `Bearer ${bearer}` },
+      dataType: "json",
+    });
+    console.log(response);
+    if (response && response.responseCode) {
+      $("#modalViewCrimeComplaintLabel").modal("show");
+      //$("#error_modal").modal("show");
+      const data = response.data;
+      $("#crime_ComplaintName").text(data.complaintName || "-");
+      $("#crime_VictimName").text(data.victimName);
+      $("#crime_ioname").text(data.ioOfficerName);
+      $("#crime_CrimeType").text(data.crimeTypeName || "-");
+      $("#crime_Location").text(data.jurisdictionName || "-");
+      $("#crime_Status").text(data.statusName || "-");
+      $("#crime_reportDate").text(data.dateReportString);
+
+      $("#crime_StartDate").text(data.startDateString);
+      $("#crime_endDate").text(data.endDateString);
+
+      $("#crime_Description").text(
+        data.CrimeDescription || "No description provided."
+      );
+      $("#crime_invest_Description").text(
+        data.investigationDescription || "No description provided."
+      );
+    }
+  } catch (err) {
+    console.error("Error fetching investigation details for view:", err);
+    $("#error_body_txt").html(
+      err.responseJSON?.responseMessage ||
+        "Failed to load investigation details."
+    );
+    $("#error_modal").modal("show");
+  } finally {
+    $("#loader").hide();
+  }
+}
+
 $(document).on("click", ".assign-report", function () {
   const id = $(this).data("id");
   $("#confirmBody").text(`Assign ${id} to yourself?`);

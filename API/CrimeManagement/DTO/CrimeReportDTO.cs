@@ -12,9 +12,25 @@
 
         public string? jurisdictionIdentifier { get; set; }
 
+        public string? jurisdictionName { get; set; }
+        
+        public string? ioOfficerName { get; set; }
+
+        public string? startDateString { get; set; }
+
+        public string? endDateString { get; set; }
+
+        public string? investigationDescription { get; set; }
+
+        public string? victimName { get; set; }
+
         public int? CrimeTypeId { get; set; }
 
         public string? crimeTypeIdentifier { get; set; }
+
+        public string? crimeTypeName { get; set; }
+
+        public string? statusName { get; set; }
 
         public string? CrimeDescription { get; set; }
 

@@ -69,7 +69,7 @@ namespace CrimeManagement.Services
             try
             {
                 var userDetails = await _db.UserMasters
-                                  .FirstOrDefaultAsync(u => u.EmailId.ToLower() == objdto.emailId.ToLower());
+                                  .FirstOrDefaultAsync(u => u.UserName.ToLower() == objdto.userName.ToLower());
                 if(userDetails == null)
                 {
                     throw new CustomException("Email Id does not exist");

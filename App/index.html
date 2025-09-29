@@ -193,16 +193,20 @@
           <!-- Forgot Password Form -->
           <form id="forgotPasswordForm">
             <div class="mb-3">
-              <label class="form-label">Email</label>
+              <label class="form-label"
+                >UserName <span class="mandatory_field">*</span></label
+              >
               <input
-                type="email"
+                type="text"
                 class="form-control"
-                id="forgotEmail"
+                id="forget_username"
                 required
               />
             </div>
             <div class="mb-3">
-              <label class="form-label">New Password</label>
+              <label class="form-label"
+                >New Password<span class="mandatory_field">*</span></label
+              >
               <input
                 type="password"
                 class="form-control"
@@ -211,7 +215,11 @@
               />
             </div>
             <div class="mb-3">
-              <label class="form-label">Confirm New Password</label>
+              <label class="form-label"
+                >Confirm New Password<span class="mandatory_field"
+                  >*</span
+                ></label
+              >
               <input
                 type="password"
                 class="form-control"
@@ -1003,6 +1011,84 @@
                 Save Report
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="modalViewCrimeComplaint"
+      tabindex="-1"
+      aria-labelledby="modalViewCrimeComplaintLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalViewCrimeComplaintLabel">
+              Complaint Details
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <p>
+                  <strong>Complaint Name:</strong>
+                  <span id="crime_ComplaintName"></span>
+                </p>
+                <p>
+                  <strong>Victim Name:</strong>
+                  <span id="crime_VictimName"></span>
+                </p>
+                <p>
+                  <strong>Investigative Officer:</strong>
+                  <span id="crime_ioname"></span>
+                </p>
+                <p>
+                  <strong>Crime Type:</strong>
+                  <span id="crime_CrimeType"></span>
+                </p>
+                <p>
+                  <strong>Jurisdiction:</strong>
+                  <span id="crime_Location"></span>
+                </p>
+                <p><strong>Status:</strong> <span id="crime_Status"></span></p>
+              </div>
+              <div class="col-md-6">
+                <p>
+                  <strong>Crime Report Date:</strong>
+                  <span id="crime_reportDate"></span>
+                </p>
+                <p>
+                  <strong>Start Date:</strong>
+                  <span id="crime_StartDate"></span>
+                </p>
+                <p>
+                  <strong>End Date:</strong> <span id="crime_endDate"></span>
+                </p>
+              </div>
+            </div>
+            <hr />
+            <h6>Crime Description:</h6>
+            <p id="crime_Description"></p>
+            <h6>Investigation Description:</h6>
+            <p id="crime_invest_Description"></p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

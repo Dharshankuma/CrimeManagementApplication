@@ -11,6 +11,8 @@ namespace CrimeManagement.Services
     {
         Task<Data<List<CrimeReportViewDTO>>> DoGetCrimeReportDetails(CrimeRequestviewDTO objdto);
         Task DoRaiseCrimeReport(CrimeReportDTO objdto);
+
+        Task<CrimeReportDTO> DoGetCrimeReportDetailsById(string identifer);
     }
     public class CrimeReportService : ICrimeReportService 
     {
@@ -176,6 +178,56 @@ namespace CrimeManagement.Services
                 // log exception
                 throw;
             }
+        }
+
+        public async Task<CrimeReportDTO> DoGetCrimeReportDetailsById(string identifer)
+        {
+            try
+            {
+                var data = await (from cmp in _db.ComplaintRequests
+                                  join jurisdiction in _db.JurisdictionMasters on cmp.JurisdictionId equals jurisdiction.JurisdictionId into jurisdictiontemp
+                                  from jurisdictiondata in jurisdictiontemp.DefaultIfEmpty()
+                                  join crimeType in _db.CrimeTypes on cmp.CrimeTypeId equals crimeType.CrimeId into crimeTypetemp
+                                  from crimeTypedata in crimeTypetemp.DefaultIfEmpty()
+                                  join user in _db.UserMasters on cmp.CreatedBy equals user.UserId into usertemp
+                                  from userdata in usertemp.DefaultIfEmpty()
+                                  join invuserdata in _db.UserMasters on cmp.IoofficerId equals invuserdata.UserId into invusertemp
+                                  from invuser in invusertemp.DefaultIfEmpty()
+                                  join invdata in _db.Investigations on cmp.InvestigationId equals invdata.InvestigationId into invdatatemp
+                                  from inv in invdatatemp.DefaultIfEmpty()
+                                  join stdata in _db.Statusmasters on cmp.StatusId equals stdata.Statusid into stdatatemp
+                                  from sts in stdatatemp.DefaultIfEmpty()
+                                  where cmp.Identifier == identifer
+                                  select new CrimeReportDTO
+                                  {
+                                      ComplaintName = cmp.ComplaintName,
+                                      jurisdictionIdentifier = jurisdictiondata.Identifier,
+                                      jurisdictionName = jurisdictiondata.JurisdictionName,
+                                      crimeTypeIdentifier = crimeTypedata.Identifier,
+                                      crimeTypeName = crimeTypedata.CrimeName,
+                                      CrimeDescription = cmp.CrimeDescription,
+                                      PhoneNumber = cmp.PhoneNumber,
+                                      dateReportString = cmp.DateReported.HasValue ? cmp.DateReported.Value.ToString("dd-MM-yyyy") : string.Empty,
+                                      userIdentifier = userdata.Identifier,
+                                      investigationDescription = inv.InvestigationDescription,
+                                      startDateString = inv.StartDate.HasValue ? inv.StartDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                                      endDateString = inv.EndDate.HasValue? inv.EndDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                                      victimName = userdata.UserName,
+                                      ioOfficerName = invuser.UserName,
+                                      statusName = sts.Status, 
+                                  }).FirstOrDefaultAsync();
+
+                return data;
+            }
+            catch(CustomException ex)
+            {
+                throw ex;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+
         }
 
         private async Task AllocateIoOfficerandCreateInvestigation(ComplaintRequest complaint)

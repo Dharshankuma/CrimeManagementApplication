@@ -65,5 +65,29 @@ namespace CrimeManagement.Controllers
                 return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
             }
         }
+
+
+        [HttpGet]
+        [Route("FetchComplaintDetails")]
+        public async Task<IActionResult> DoGetParticularCrimeReportDetails(string identifier)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(identifier))
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseStatus = Helper.CustomHelper._failure, responseDatetime = DateTime.Now, responseMessage = "Invalid Request" });
+                }
+                var data = await _crimeService.DoGetCrimeReportDetailsById(identifier);
+                return Ok(new CommonResponseDTO { data = data, responseCode = 200, responseMessage = "success", responseDatetime = DateTime.Now, responseStatus = Helper.CustomHelper._success });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 400, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "An unexpected error occurred.", responseStatus = Helper.CustomHelper._failure, data = ex.Message });
+            }
+        }
     }
 }
