@@ -283,6 +283,11 @@ $(function () {
     maxDate: 0, // Optionally, prevent selecting future dates
   });
 
+  $("#updateEndDate").datepicker({
+    dateFormat: "dd-mm-yy", // You can set your desired date format
+    maxDate: 0, // Optionally, prevent selecting future dates
+  });
+
   // $("#topbar").hide();
   initAuth();
 });
@@ -500,11 +505,11 @@ async function DoGetConfiguration() {
       $("#crime_jurisdiction").html(jurisdictionHtml);
 
       // Populate Status dropdown
-      // let statusHtml = `<option value="" selected>Select</option>`;
-      // statusMaster.forEach((st) => {
-      //   statusHtml += `<option value="${st.id}">${st.name}</option>`;
-      // });
-      // $("#statusSelect").html(statusHtml);
+      let statusHtml = `<option value="" selected>Select</option>`;
+      statusMaster.forEach((st) => {
+        statusHtml += `<option value="${st.identifier}">${st.name}</option>`;
+      });
+      $("#update_invest_Status").html(statusHtml);
     }
   } catch (error) {
     console.error("Error fetching configuration:", error);
@@ -903,7 +908,9 @@ $(document).on("click", ".view_invest", function () {
 
 $(document).on("click", ".update_invest", function () {
   const identifier = $(this).data("id");
-  fetchAndPopulateInvestigationForUpdate(identifier);
+  currentInvestigationIdentifier = identifier;
+  $("#modalUpdateInvestigation").modal("show");
+  //fetchAndPopulateInvestigationForUpdate(identifier);
 });
 
 let currentInvestigationIdentifier = null;
@@ -992,6 +999,64 @@ async function fetchAndPopulateInvestigationForUpdate(identifier) {
     $("#loader").hide();
   }
 }
+
+$("#formUpdateInvestigation").submit(async function (event) {
+  event.preventDefault(); // Prevent default form submission
+
+  //const userIdentifier = userIdentifier; // Assuming you store userIdentifier in localStorage
+
+  if (!userIdentifier) {
+    $("#error_body_txt").html("User not identified. Please log in again.");
+    $("#error_modal").modal("show");
+    return;
+  }
+
+  const updatedData = {
+    userIdentifier: userIdentifier,
+    Identifier: currentInvestigationIdentifier,
+    statusIdentifier: $("#update_invest_Status").val(),
+    InvestigationDescription: $("#updateDescription").val(),
+    endDateString: $("#updateEndDate").val(),
+  };
+
+  console.log(updatedData);
+
+  try {
+    $("#loader").show();
+    const response = await $.ajax({
+      url: `${APIUrl}/Investigation/UpdateInvestigation`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(updatedData),
+      headers: { Authorization: `Bearer ${bearer}` },
+      dataType: "json",
+    });
+
+    if (response && response.responseCode === 200) {
+      $("#modalUpdateInvestigation").modal("hide");
+
+      DoClearValues();
+      $("#success_body_txt").html(
+        response.responseMessage || "Investigation updated successfully!"
+      );
+      $("#success_modal").modal("show");
+      renderInvestigationTables(); // Refresh the table to show updated data
+    } else {
+      throw new Error(
+        response.responseMessage || "Failed to update investigation."
+      );
+    }
+  } catch (err) {
+    console.error("Error updating investigation:", err);
+    $("#error_body_txt").html(
+      err.responseJSON?.responseMessage ||
+        "Failed to update investigation details."
+    );
+    $("#error_modal").modal("show");
+  } finally {
+    $("#loader").hide();
+  }
+});
 
 // Optional: handle pagination click
 $(document).on("click", "#invest_Pagination .page-link", function (e) {
@@ -1096,6 +1161,9 @@ function DoClearValues() {
   $("#crime_description").val("");
   $("#crime_raiser_no").val("");
   $("#dateReportString").val("");
+  $("#update_invest_Status").val("");
+  $("#updateEndDate").val("");
+  $("#updateDescription").val("");
 }
 
 // evidence submit

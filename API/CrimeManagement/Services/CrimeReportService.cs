@@ -83,11 +83,11 @@ namespace CrimeManagement.Services
 
                 var totalCount = result.Count();
 
-                int pageNumber = objdto.PageNumber > 0 ? objdto.PageNumber : 1;
+                int pageNumber = objdto.PageNumber >= 0 ? objdto.PageNumber : 0; // allow 0 as first page
                 int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
 
                 var pagedResult = await query
-                    .Skip((pageNumber - 1) * pageSize)
+                    .Skip(pageNumber * pageSize)   // 0 → first page, 1 → second page, etc.
                     .Take(pageSize)
                     .ToListAsync();
 

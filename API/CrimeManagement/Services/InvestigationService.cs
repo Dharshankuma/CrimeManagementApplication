@@ -84,13 +84,13 @@ namespace CrimeManagement.Services
                 var totalCount = await query.CountAsync();
 
                 // Step 6: Apply paging
-                int pageNumber = objdto.PageNumber > 0 ? objdto.PageNumber : 1;
+                int pageNumber = objdto.PageNumber >= 0 ? objdto.PageNumber : 0; // allow 0 as first page
                 int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
 
                 var pagedData = await query
-                                    .Skip((pageNumber - 1) * pageSize)
-                                    .Take(pageSize)
-                                    .ToListAsync();
+                    .Skip(pageNumber * pageSize)   // 0 → first page, 1 → second page, etc.
+                    .Take(pageSize)
+                    .ToListAsync();
 
                 // Step 7: Map to DTO and format date in memory
                 var result = pagedData.Select(x => new InvestigationViewDTO
@@ -217,8 +217,8 @@ namespace CrimeManagement.Services
 
                 if (!string.IsNullOrEmpty(objdto.endDateString))
                 {
-                    if (DateTime.TryParse(objdto.endDateString, out DateTime endDate))
-                        investigation.EndDate = endDate;
+                    var enddate = Helper.CustomHelper.ParseDate(objdto.endDateString);
+                    investigation.EndDate = enddate;
                 }
 
                 investigation.ModifyBy = user.UserId;
@@ -227,6 +227,17 @@ namespace CrimeManagement.Services
                 _db.Investigations.Update(investigation);
                 await _db.SaveChangesAsync();
 
+
+                var complaintDetails = await _db.ComplaintRequests.Where(x => x.ComplaintRequestId == investigation.ComplaintId).FirstOrDefaultAsync();
+
+                if(complaintDetails == null)
+                {
+                    throw new CustomException("No Complaint Request is found");
+                }
+
+                complaintDetails.StatusId = statusId;
+                _db.ComplaintRequests.Update(complaintDetails);
+                await _db.SaveChangesAsync();
                 
             }
             catch (CustomException ex)
