@@ -69,6 +69,13 @@
         public string? countryIdentifier { get; set; }
     }
 
+
+    public class UserGridDTO
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+    }
+
     public class UserLoginDetails
     {
         public string? userIdentifier { get; set; }

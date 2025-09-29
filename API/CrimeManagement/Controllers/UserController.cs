@@ -18,20 +18,20 @@ namespace CrimeManagement.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("GetUser")]
-        public async Task<IActionResult> DoGetUserDetails(string identifier)
+        public async Task<IActionResult> DoGetUserDetails(UserGridDTO objdto)
         {
             try
             {
-                if (string.IsNullOrEmpty(identifier))
+                if (objdto == null)
                 {
                     return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure,responseMessage = "Identifier is required", responseCode = 400, responseDatetime = DateTime.Now });
                 }
 
-                var data = await _userService.DoGetUserDetails(identifier);
+                var data = await _userService.DoGetUserDetails(objdto);
 
-                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now,responseStatus = Helper.CustomHelper._success});
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now,responseStatus = Helper.CustomHelper._success,data = data});
             }
             catch (CustomException ex)
             {

@@ -699,8 +699,126 @@ function renderTabs(tabid, page = 0) {
     case 2:
       renderInvestigationTables(page);
       break;
+    case 3: // New case for users tab
+      renderUsersTable(page);
+      break;
   }
 }
+
+async function renderUsersTable(page = 0) {
+  const $tbl = $("#tblUsers").empty();
+  let htmlheader = "";
+  let htmlbody = "";
+  const usersPerPage = 10; // You can adjust this as needed
+
+  try {
+    $("#loader").show();
+
+    // Prepare request DTO for API
+    const requestDTO = {
+      PageNumber: page,
+      PageSize: usersPerPage,
+      // You might need a userIdentifier or other parameters for fetching all users
+      // If your API needs it, add it here:
+      // userIdentifier: userIdentifier,
+    };
+
+    // Build header for the users table
+    htmlheader = `
+      <thead>
+        <tr>
+          <th>S.no</th>
+          <th>Username</th>
+          <th>Email ID</th>
+        </tr>
+      </thead>
+    `;
+
+    // !!! IMPORTANT: Replace with your actual API endpoint to get all users !!!
+    // I'm using a placeholder '/User/GetAllUsers'.
+    // Your provided C# code only has 'DoGetUserDetails' by identifier,
+    // so you'll need an endpoint that returns a list of users.
+    const response = await $.ajax({
+      url: `${APIUrl}/User/GetUser`, // <--- *** CHANGE THIS TO YOUR ACTUAL API ENDPOINT ***
+      method: "POST", // Or GET, depending on your API
+      contentType: "application/json",
+      data: JSON.stringify(requestDTO), // Pass pagination info if needed by your API
+      dataType: "json",
+      headers: { Authorization: `Bearer ${bearer}` },
+    });
+
+    console.log("All Users:", response);
+
+    if (response && response.data) {
+      const usersData = response.data.data || [];
+      const totalCount = response.data.totalCount || 0; // Assuming total count for pagination
+
+      if (usersData.length > 0) {
+        htmlbody = "<tbody>";
+
+        usersData.forEach((user, index) => {
+          htmlbody += `
+            <tr>
+              <td>${page * usersPerPage + index + 1}</td>
+              <td>${user.userName || "-"}</td>
+              <td>${user.emailId || "-"}</td>
+            </tr>
+          `;
+        });
+        htmlbody += "</tbody>";
+      } else {
+        const colCount = $(htmlheader).find("th").length || 1;
+        htmlbody = `<tbody><tr><td colspan="${colCount}" class="text-center">No Users Available</td></tr></tbody>`;
+      }
+
+      // Pagination for users table
+      const $pagination = $("#usersPagination").empty(); // Assuming you'll add a new pagination div for users
+      const totalPages = Math.ceil(totalCount / usersPerPage);
+
+      if (totalPages > 1) {
+        // Only show pagination if there's more than one page
+        $pagination.append(
+          `<li class="page-item ${page === 0 ? "disabled" : ""}">
+            <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
+          </li>`
+        );
+
+        for (let i = 0; i < totalPages; i++) {
+          $pagination.append(
+            `<li class="page-item ${i === page ? "active" : ""}">
+              <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
+            </li>`
+          );
+        }
+
+        $pagination.append(
+          `<li class="page-item ${page === totalPages - 1 ? "disabled" : ""}">
+            <a class="page-link" href="#" data-page="${page + 1}">Next</a>
+          </li>`
+        );
+      }
+    } else {
+      const colCount = $(htmlheader).find("th").length || 1;
+      htmlbody = `<tbody><tr><td colspan="${colCount}" class="text-center">No Users Available</td></tr></tbody>`;
+    }
+  } catch (err) {
+    console.error("Error fetching user list:", err);
+    $("#error_body_txt").html(err.responseText || "Failed to load user list.");
+    $("#error_modal").modal("show");
+  } finally {
+    $("#tblUsers").html(htmlheader + htmlbody);
+    $("#loader").hide();
+  }
+}
+
+$(document).on("click", "#usersPagination .page-link", function (e) {
+  e.preventDefault();
+  const selectedPage = parseInt($(this).data("page"));
+  if (!isNaN(selectedPage)) {
+    currentPage = selectedPage; // Update currentPage
+    renderUsersTable(currentPage); // Re-render the user table
+  }
+});
 
 $(document).on("click", "#reportsPagination .page-link", function (e) {
   e.preventDefault();
@@ -1256,6 +1374,7 @@ $("#formEvidence").on("submit", function (e) {
 let complaintIdentifier = "";
 $(document).on("click", ".view-report", function () {
   const id = $(this).data("id");
+  complaintIdentifier = id;
   fetchAndDisplayComplaintDetails(complaintIdentifier);
 });
 
@@ -1270,7 +1389,6 @@ async function fetchAndDisplayComplaintDetails(identifier) {
     });
     console.log(response);
     if (response && response.responseCode) {
-      $("#modalViewCrimeComplaintLabel").modal("show");
       //$("#error_modal").modal("show");
       const data = response.data;
       $("#crime_ComplaintName").text(data.complaintName || "-");
@@ -1285,17 +1403,18 @@ async function fetchAndDisplayComplaintDetails(identifier) {
       $("#crime_endDate").text(data.endDateString);
 
       $("#crime_Description").text(
-        data.CrimeDescription || "No description provided."
+        data.crimeDescription || "No description provided."
       );
       $("#crime_invest_Description").text(
         data.investigationDescription || "No description provided."
       );
+
+      $("#modalViewCrimeComplaint").modal("show");
     }
   } catch (err) {
-    console.error("Error fetching investigation details for view:", err);
+    console.error("Error fetching complaint details for view:", err);
     $("#error_body_txt").html(
-      err.responseJSON?.responseMessage ||
-        "Failed to load investigation details."
+      err.responseJSON?.responseMessage || "Failed to load complaint details."
     );
     $("#error_modal").modal("show");
   } finally {

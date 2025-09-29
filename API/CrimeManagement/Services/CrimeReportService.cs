@@ -191,10 +191,10 @@ namespace CrimeManagement.Services
                                   from crimeTypedata in crimeTypetemp.DefaultIfEmpty()
                                   join user in _db.UserMasters on cmp.CreatedBy equals user.UserId into usertemp
                                   from userdata in usertemp.DefaultIfEmpty()
-                                  join invuserdata in _db.UserMasters on cmp.IoofficerId equals invuserdata.UserId into invusertemp
-                                  from invuser in invusertemp.DefaultIfEmpty()
                                   join invdata in _db.Investigations on cmp.InvestigationId equals invdata.InvestigationId into invdatatemp
                                   from inv in invdatatemp.DefaultIfEmpty()
+                                  join invuserdata in _db.UserMasters on inv.IoOfficerId equals invuserdata.UserId into invusertemp
+                                  from invuser in invusertemp.DefaultIfEmpty()
                                   join stdata in _db.Statusmasters on cmp.StatusId equals stdata.Statusid into stdatatemp
                                   from sts in stdatatemp.DefaultIfEmpty()
                                   where cmp.Identifier == identifer

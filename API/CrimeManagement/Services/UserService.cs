@@ -9,7 +9,7 @@ namespace CrimeManagement.Services
     public interface IUserService
     {
         Task<UserLoginDetails> DoGetLoginUserDetails(string userName);
-        Task<Data<List<UserDTO>>> DoGetUserDetails(string identifier);
+        Task<Data<List<UserDTO>>> DoGetUserDetails(UserGridDTO objdto);
         Task DoUpdateUserDetails(UserDTO objdto);
     }
     public class UserService : IUserService
@@ -119,54 +119,64 @@ namespace CrimeManagement.Services
             }
         }
 
-        public async Task<Data<List<UserDTO>>> DoGetUserDetails(string Identifier)
+        public async Task<Data<List<UserDTO>>> DoGetUserDetails(UserGridDTO objdto)
         {
             try
             {
-                var userDetails = await (from user in _db.UserMasters
-                                         join roledata in _db.Roles on user.RoleId equals roledata.RoleId into roledataTemp
-                                         from role in roledataTemp.DefaultIfEmpty()
-                                         join desdata in _db.DesignationMasters on user.DesignationId equals desdata.DesignationId into desdatatemp
-                                         from des in desdatatemp.DefaultIfEmpty()
-                                         join jursdata in _db.JurisdictionMasters on user.Jurisdiction equals jursdata.JurisdictionId into jurstemmp
-                                         from jurs in jurstemmp.DefaultIfEmpty()
-                                         join locdata in _db.LocationMasters on jurs.LocationId equals locdata.LocationId into loctemp
-                                         from loc in loctemp.DefaultIfEmpty()
-                                         join stdata in _db.StateMasters on loc.StateId equals stdata.StateId into sttemp
-                                         from st in sttemp.DefaultIfEmpty()
-                                         join cntrydata in _db.CountryMasters on st.CountryId equals cntrydata.CountryId into cntrydtemp
-                                         from cntry in cntrydtemp.DefaultIfEmpty()
-                                         where user.Identifier == Identifier && user.Status == "Active"
-                                         select new UserDTO
-                                         {
-                                             identifier = user.Identifier,
-                                             userName = user.UserName,
-                                             firstName = user.Firstname,
-                                             lastName = user.Lastname,
-                                             middleName = user.MiddleName,
-                                             aadhaar = user.Aadhaar,
-                                             pan = user.Pan,
-                                             emailId = user.EmailId,
-                                             phoneNo = user.PhoneNo,
-                                             emergencyContact = user.EmergencyContact,
-                                             status = user.Status,
-                                             gender = user.Gender,
-                                             roleName = role.RoleName,
-                                             jurisdictionIdentifier = jurs.Identifier,
-                                             designationIdentifier = des.Identifier,
-                                             stateIdentifer = st.Identifier,
-                                             countryIdentifier = cntry.Identifier,
-                                             locationIdentifier = loc.Identifier,
-                                             dob = user.Dob
-                                         }).ToListAsync();
-
-                var totalCount = userDetails.Count();
+                var query =  (from user in _db.UserMasters
+                                   join roledata in _db.Roles on user.RoleId equals roledata.RoleId into roledataTemp
+                                   from role in roledataTemp.DefaultIfEmpty()
+                                   join desdata in _db.DesignationMasters on user.DesignationId equals desdata.DesignationId into desdatatemp
+                                   from des in desdatatemp.DefaultIfEmpty()
+                                   join jursdata in _db.JurisdictionMasters on user.Jurisdiction equals jursdata.JurisdictionId into jurstemmp
+                                   from jurs in jurstemmp.DefaultIfEmpty()
+                                   join locdata in _db.LocationMasters on jurs.LocationId equals locdata.LocationId into loctemp
+                                   from loc in loctemp.DefaultIfEmpty()
+                                   join stdata in _db.StateMasters on loc.StateId equals stdata.StateId into sttemp
+                                   from st in sttemp.DefaultIfEmpty()
+                                   join cntrydata in _db.CountryMasters on st.CountryId equals cntrydata.CountryId into cntrydtemp
+                                   from cntry in cntrydtemp.DefaultIfEmpty()
+                                   where user.Status == "Active"
+                                   select new UserDTO
+                                   {
+                                       identifier = user.Identifier,
+                                       userName = user.UserName,
+                                       firstName = user.Firstname,
+                                       lastName = user.Lastname,
+                                       middleName = user.MiddleName,
+                                       aadhaar = user.Aadhaar,
+                                       pan = user.Pan,
+                                       emailId = user.EmailId,
+                                       phoneNo = user.PhoneNo,
+                                       emergencyContact = user.EmergencyContact,
+                                       status = user.Status,
+                                       gender = user.Gender,
+                                       roleName = role.RoleName,
+                                       jurisdictionIdentifier = jurs.Identifier,
+                                       designationIdentifier = des.Identifier,
+                                       stateIdentifer = st.Identifier,
+                                       countryIdentifier = cntry.Identifier,
+                                       locationIdentifier = loc.Identifier,
+                                       dob = user.Dob
+                                   });
 
 
+
+                var result = await query.ToListAsync();
+
+                var totalCount = result.Count();
+
+                int pageNumber = objdto.PageNumber >= 0 ? objdto.PageNumber : 0; // allow 0 as first page
+                int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
+
+                var pagedResult = await query
+                    .Skip(pageNumber * pageSize)   // 0 → first page, 1 → second page, etc.
+                    .Take(pageSize)
+                    .ToListAsync();
 
                 return new Data<List<UserDTO>>
                 {
-                    data = userDetails,
+                    data = pagedResult,
                     totalCount = totalCount,
                 };
             }
