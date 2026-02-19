@@ -305,38 +305,4 @@ CREATE TABLE IOJurisdictionAssign (
 );
 
 
-CREATE TABLE StatusTransitionRules (
-    StatusTransitionRuleId INT IDENTITY(1,1) PRIMARY KEY,
 
-    FromStatusId INT NOT NULL,   -- current status
-    ToStatusId INT NOT NULL,     -- next allowed status
-
-    AllowedRoleId INT NOT NULL,  -- who can do this transition
-    IsActive BIT NOT NULL DEFAULT 1,
-
-    CreatedBy INT NULL,
-    CreatedOn DATETIME NOT NULL DEFAULT GETDATE()
-);
-
-
-INSERT INTO StatusMaster (status, identifier, createdon)
-VALUES ('Evidence Collected', NEWID(), GETDATE());
-
-
-
-
-ALTER TABLE UserMaster
-ALTER COLUMN HashPassword VARCHAR(255) NULL;
-
-
-ALTER TABLE UserMaster
-ADD AuthProvider VARCHAR(20) NOT NULL 
-    CONSTRAINT DF_UserMaster_AuthProvider DEFAULT 'Local';
-
-
-    ALTER TABLE UserMaster
-ADD ExternalProviderId VARCHAR(100) NULL;
-
-
-ALTER TABLE UserMaster
-ADD CONSTRAINT UQ_UserMaster_Email UNIQUE (emailId);
