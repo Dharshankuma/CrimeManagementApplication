@@ -23,7 +23,7 @@ namespace CrimeManagement.Controllers
             try
             {
                 var data = await _service.DoGetCrimeDashBoardContent();
-                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "Dashboard details retrived successfully.", responseStatus = Helper.CustomHelper._success ,data = data})
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "Dashboard details retrived successfully.", responseStatus = Helper.CustomHelper._success, data = data });
             }
 
             catch (CustomException ex)
