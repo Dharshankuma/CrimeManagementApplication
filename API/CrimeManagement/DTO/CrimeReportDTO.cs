@@ -1,4 +1,6 @@
-﻿namespace CrimeManagement.DTO
+﻿using CrimeManagement.Models;
+
+namespace CrimeManagement.DTO
 {
     public class CrimeReportDTO
     {
@@ -41,6 +43,12 @@
         public DateTime? DateReported { get; set; }
 
         public string? dateReportString { get; set; }
+
+        public string? priorityLevel { get; set; }
+
+        public List<EvidenceAttachment>? evidenceDetails { get; set; }
+
+        public List<InvestigationStageHistory>? previousUpdates { get; set; }
     }
 
     public class CrimeReportViewDTO
@@ -53,6 +61,9 @@
         public string? crimeType { get; set; }
         public string? crimeStatus { get; set; }
         public string? crimeStatusStr { get; set; }
+        public string? ioOfficerName { get; set; }
+        public string? lastUpdated { get; set; }
+        public DateTime? modifedDate { get; set; }
     }
 
     public class CrimeRequestviewDTO

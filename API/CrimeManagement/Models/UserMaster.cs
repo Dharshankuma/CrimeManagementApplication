@@ -52,4 +52,8 @@ public partial class UserMaster
     public int? ModifyBy { get; set; }
 
     public DateTime? ModifyOn { get; set; }
+
+    public string AuthProvider { get; set; } = null!;
+
+    public string? ExternalProviderId { get; set; }
 }

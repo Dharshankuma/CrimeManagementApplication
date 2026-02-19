@@ -58,6 +58,8 @@ public partial class CrimeDbContext : DbContext
 
     public virtual DbSet<StateMaster> StateMasters { get; set; }
 
+    public virtual DbSet<StatusTransitionRule> StatusTransitionRules { get; set; }
+
     public virtual DbSet<Statusmaster> Statusmasters { get; set; }
 
     public virtual DbSet<UserLoginLog> UserLoginLogs { get; set; }
@@ -429,6 +431,16 @@ public partial class CrimeDbContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<StatusTransitionRule>(entity =>
+        {
+            entity.HasKey(e => e.StatusTransitionRuleId).HasName("PK__StatusTr__FF9A57B75C454ADD");
+
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<Statusmaster>(entity =>
         {
             entity.HasKey(e => e.Statusid).HasName("PK__statusma__36247E30001E7D83");
@@ -472,6 +484,8 @@ public partial class CrimeDbContext : DbContext
 
             entity.ToTable("UserMaster");
 
+            entity.HasIndex(e => e.EmailId, "UQ_UserMaster_Email").IsUnique();
+
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.Aadhaar)
                 .HasMaxLength(12)
@@ -479,6 +493,10 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.Address)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.AuthProvider)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("Local");
             entity.Property(e => e.CreatedOn)
                 .HasColumnType("datetime")
                 .HasColumnName("createdOn");
@@ -491,6 +509,9 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.EmergencyContact)
                 .HasMaxLength(12)
                 .IsUnicode(false);
+            entity.Property(e => e.ExternalProviderId)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.Firstname)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -498,7 +519,7 @@ public partial class CrimeDbContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false);
             entity.Property(e => e.HashPassword)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false);
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)

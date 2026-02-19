@@ -19,21 +19,26 @@ namespace CrimeManagement.Services
         private readonly CrimeDbContext _db;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _environment;
         private readonly IConfiguration _config;
-        public CrimeReportService(CrimeDbContext db, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment, IConfiguration config)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public CrimeReportService(CrimeDbContext db, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _environment = environment;
             _config = config;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Data<List<CrimeReportViewDTO>>> DoGetCrimeReportDetails(CrimeRequestviewDTO objdto)
         {
             try
             {
-                var userId = await _db.UserMasters
-                                      .Where(u => u.Identifier == objdto.userIdentifier)
-                                      .Select(u => u.UserId)
-                                      .FirstOrDefaultAsync();
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value,out int userId);
+
+                //var userId = await _db.UserMasters
+                //                      .Where(u => u.Identifier == objdto.userIdentifier)
+                //                      .Select(u => u.UserId)
+                //                      .FirstOrDefaultAsync();
+
                 if (userId == 0)
                     throw new CustomException("User does not exist");
 
@@ -214,7 +219,7 @@ namespace CrimeManagement.Services
                                       endDateString = inv.EndDate.HasValue? inv.EndDate.Value.ToString("dd-MM-yyyy") : string.Empty,
                                       victimName = userdata.UserName,
                                       ioOfficerName = invuser.UserName,
-                                      statusName = sts.Status, 
+                                      statusName = sts.Status,
                                   }).FirstOrDefaultAsync();
 
                 return data;

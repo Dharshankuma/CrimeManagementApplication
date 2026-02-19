@@ -8,8 +8,13 @@ namespace CrimeManagement.DTO
         public string? emailId { get; set; }
         public string? password { get; set; }
         public string? confirmPassword { get; set; }
+        public string? googleToken { get; set; }
     }
 
+    public class LoginGoogleDTO
+    {
+        public string? googleToken { get; set; }
+    }
     public class LoginDetails
     {
         public UserLoginDetails? userDetails { get; set; }

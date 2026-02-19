@@ -84,6 +84,17 @@ namespace CrimeManagement.Helper
             }
         }
 
+
+        public static string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+
+        }
+
+        public static bool VerifyPassword(string password, string hash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
+        }
         public static DateTime? ParseDate(string date)
         {
             if (string.IsNullOrEmpty(date))
@@ -99,6 +110,26 @@ namespace CrimeManagement.Helper
         public static DateTime DoGetDateTime()
         {
             return DateTime.Now;
+        }
+        
+        public static string DoGetRelativeDateTime(DateTime? date)
+        {
+            var timespan = DateTime.Now - date;
+
+            if (timespan.Value.TotalSeconds < 60)
+                return $"{timespan.Value.TotalSeconds} seconds ago";
+            if (timespan.Value.TotalMinutes < 60)
+                return $"{timespan.Value.TotalMinutes} minutes ago";
+            if (timespan.Value.TotalHours < 24)
+                return $"{timespan.Value.TotalHours} hours ago";
+            if (timespan.Value.TotalDays < 7)
+                return $"{timespan.Value.TotalDays} days ago";
+            if (timespan.Value.TotalDays < 30)
+                return $"{timespan.Value.TotalDays / 7} weeks ago";
+            if (timespan.Value.TotalDays < 365)
+                return $"{timespan.Value.TotalDays / 30} months ago";
+
+            return $"{timespan.Value.TotalDays / 365} years ago";
         }
     }
 }

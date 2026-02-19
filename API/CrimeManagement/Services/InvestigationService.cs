@@ -1,5 +1,6 @@
 ﻿using CrimeManagement.Context;
 using CrimeManagement.DTO;
+using CrimeManagement.Helper;
 using Microsoft.EntityFrameworkCore;
 using static CrimeManagement.DTO.CrimeResponseDTO;
 
@@ -15,10 +16,11 @@ namespace CrimeManagement.Services
     public class InvestigationService : IInvestigationService
     {
         private readonly CrimeDbContext _db;
-
-        public InvestigationService(CrimeDbContext db)
+        private readonly IWorkFlowValidationService _workflowService;
+        public InvestigationService(CrimeDbContext db, IWorkFlowValidationService workflowService)
         {
             _db = db;
+            _workflowService = workflowService;
         }
 
         public async Task<Data<List<InvestigationViewDTO>>> DoGetInvestigationOverviewDetails(InvestigationRequestviewDTO objdto)
@@ -121,7 +123,6 @@ namespace CrimeManagement.Services
             }
         }
 
-
         public async Task<InvestigationDTO> DoGetInvestigationDetailsById(string identifier)
         {
             try
@@ -170,7 +171,10 @@ namespace CrimeManagement.Services
                                                statusName = st.Status
                                            }).FirstOrDefaultAsync();
 
-                return investigation;
+
+                var finaldata = investigation;
+
+                return finaldata;
             }
             catch(CustomException ex)
             {
@@ -210,7 +214,14 @@ namespace CrimeManagement.Services
 
                 var statusId = await _db.Statusmasters.Where(x=>x.Identifier == objdto.statusIdentifier).Select(x=>x.Statusid).FirstOrDefaultAsync();
 
-                investigation.StatusId = statusId != 0 ? statusId : investigation.StatusId;
+                if(statusId == null || statusId == 0)
+                {
+                    throw new CustomException("Invalid Status");
+                }
+
+                int oldStatus = (int)investigation.StatusId;
+
+                await _workflowService.ValidationStatusTransaction(oldStatus, statusId, user.RoleId);
 
                 if (!string.IsNullOrEmpty(objdto.InvestigationDescription))
                     investigation.InvestigationDescription = objdto.InvestigationDescription;
@@ -221,6 +232,18 @@ namespace CrimeManagement.Services
                     investigation.EndDate = enddate;
                 }
 
+                var closedNoActionStatusId = await _db.Statusmasters
+            .Where(x => x.Status == "Closed - No Action")
+            .Select(x => x.Statusid)
+            .FirstOrDefaultAsync();
+
+                if (oldStatus == closedNoActionStatusId &&
+                    string.IsNullOrWhiteSpace(objdto.InvestigationDescription))
+                {
+                    throw new CustomException("Reason is mandatory for closing a case as No Action");
+                }
+
+                investigation.StatusId = statusId;
                 investigation.ModifyBy = user.UserId;
                 investigation.ModifyOn = DateTime.Now;
 
@@ -236,6 +259,8 @@ namespace CrimeManagement.Services
                 }
 
                 complaintDetails.StatusId = statusId;
+                complaintDetails.ModifyBy = user.UserId;
+                complaintDetails.ModifyOn = CustomHelper.DoGetDateTime();
                 _db.ComplaintRequests.Update(complaintDetails);
                 await _db.SaveChangesAsync();
                 
