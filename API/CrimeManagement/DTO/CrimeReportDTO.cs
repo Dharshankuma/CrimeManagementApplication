@@ -46,7 +46,7 @@ namespace CrimeManagement.DTO
 
         public string? priorityLevel { get; set; }
 
-        public List<EvidenceAttachment>? evidenceDetails { get; set; }
+        public List<EvidenceAttachmentDTO>? evidenceDetails { get; set; }
 
         public List<InvestigationStageHistory>? previousUpdates { get; set; }
     }
@@ -69,6 +69,7 @@ namespace CrimeManagement.DTO
     public class CrimeRequestviewDTO
     {
         public string? crimeType { get; set; }
+        public string? search { get; set; }
         public string? reportDate { get; set; }
         public string? columnName { get; set; }
         public bool? sortOrder { get; set; }

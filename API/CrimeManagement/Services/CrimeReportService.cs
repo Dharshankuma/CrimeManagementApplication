@@ -12,7 +12,7 @@ namespace CrimeManagement.Services
         Task<Data<List<CrimeReportViewDTO>>> DoGetCrimeReportDetails(CrimeRequestviewDTO objdto);
         Task DoRaiseCrimeReport(CrimeReportDTO objdto);
 
-        Task<CrimeReportDTO> DoGetCrimeReportDetailsById(string identifer);
+        Task<CrimeDetailsResponse> DoGetCrimeReportDetailsById(string identifer);
     }
     public class CrimeReportService : ICrimeReportService 
     {
@@ -70,11 +70,35 @@ namespace CrimeManagement.Services
                                                  : string.Empty
                             };
 
+                var totalCount = await query.CountAsync();
+
+                int pageNumber = objdto.PageNumber >= 0 ? objdto.PageNumber : 0; // allow 0 as first page
+                int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
+
+
+                if(!string.IsNullOrWhiteSpace(objdto.crimeIdentifier))
+                {
+                    query = query.Where(q => q.reportIdentifer.Contains(objdto.crimeIdentifier.Trim()));
+                };
+
+                if (!string.IsNullOrWhiteSpace(objdto.crimeType))
+                {
+                    var search = objdto.search.Trim().ToLower();
+
+                    query = query.Where(x =>
+                    (x.crimeType != null && x.crimeType.Contains(search)) ||
+                    x.complaintName != null && x.complaintName.Contains(search) ||
+                    x.jurisdictionName != null && x.jurisdictionName.Contains(search) ||
+                    x.crimeStatusStr != null && x.crimeStatusStr.Contains(search)
+                    ||
+                    x.crimeReportDate != null && x.crimeReportDate.Contains(search));                    
+                }
+
                 // Apply sorting
                 if (!string.IsNullOrEmpty(objdto.columnName))
                 {
                     bool ascending = objdto.sortOrder ?? true; // default ascending
-                    query = objdto.columnName.ToLower() switch
+                    query = objdto.columnName.Trim().ToLower() switch
                     {
                         "reportidentifier" => ascending ? query.OrderBy(q => q.reportIdentifer) : query.OrderByDescending(q => q.reportIdentifer),
                         "complaintname" => ascending ? query.OrderBy(q => q.complaintName) : query.OrderByDescending(q => q.complaintName),
@@ -88,11 +112,8 @@ namespace CrimeManagement.Services
 
                 var result = await query.ToListAsync();
 
-                var totalCount = result.Count();
 
-                int pageNumber = objdto.PageNumber >= 0 ? objdto.PageNumber : 0; // allow 0 as first page
-                int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
-
+                
                 var pagedResult = await query
                     .Skip(pageNumber * pageSize)   // 0 → first page, 1 → second page, etc.
                     .Take(pageSize)
@@ -185,44 +206,196 @@ namespace CrimeManagement.Services
             }
         }
 
-        public async Task<CrimeReportDTO> DoGetCrimeReportDetailsById(string identifer)
+        public async Task<CrimeDetailsResponse> DoGetCrimeReportDetailsById(string identifer)
         {
             try
             {
-                var data = await (from cmp in _db.ComplaintRequests
-                                  join jurisdiction in _db.JurisdictionMasters on cmp.JurisdictionId equals jurisdiction.JurisdictionId into jurisdictiontemp
-                                  from jurisdictiondata in jurisdictiontemp.DefaultIfEmpty()
-                                  join crimeType in _db.CrimeTypes on cmp.CrimeTypeId equals crimeType.CrimeId into crimeTypetemp
-                                  from crimeTypedata in crimeTypetemp.DefaultIfEmpty()
-                                  join user in _db.UserMasters on cmp.CreatedBy equals user.UserId into usertemp
-                                  from userdata in usertemp.DefaultIfEmpty()
-                                  join invdata in _db.Investigations on cmp.InvestigationId equals invdata.InvestigationId into invdatatemp
-                                  from inv in invdatatemp.DefaultIfEmpty()
-                                  join invuserdata in _db.UserMasters on inv.IoOfficerId equals invuserdata.UserId into invusertemp
-                                  from invuser in invusertemp.DefaultIfEmpty()
-                                  join stdata in _db.Statusmasters on cmp.StatusId equals stdata.Statusid into stdatatemp
-                                  from sts in stdatatemp.DefaultIfEmpty()
-                                  where cmp.Identifier == identifer
-                                  select new CrimeReportDTO
-                                  {
-                                      ComplaintName = cmp.ComplaintName,
-                                      jurisdictionIdentifier = jurisdictiondata.Identifier,
-                                      jurisdictionName = jurisdictiondata.JurisdictionName,
-                                      crimeTypeIdentifier = crimeTypedata.Identifier,
-                                      crimeTypeName = crimeTypedata.CrimeName,
-                                      CrimeDescription = cmp.CrimeDescription,
-                                      PhoneNumber = cmp.PhoneNumber,
-                                      dateReportString = cmp.DateReported.HasValue ? cmp.DateReported.Value.ToString("dd-MM-yyyy") : string.Empty,
-                                      userIdentifier = userdata.Identifier,
-                                      investigationDescription = inv.InvestigationDescription,
-                                      startDateString = inv.StartDate.HasValue ? inv.StartDate.Value.ToString("dd-MM-yyyy") : string.Empty,
-                                      endDateString = inv.EndDate.HasValue? inv.EndDate.Value.ToString("dd-MM-yyyy") : string.Empty,
-                                      victimName = userdata.UserName,
-                                      ioOfficerName = invuser.UserName,
-                                      statusName = sts.Status,
-                                  }).FirstOrDefaultAsync();
 
-                return data;
+                if (string.IsNullOrWhiteSpace(identifer))
+                    throw new CustomException("Invalid crime report identifier");
+
+
+
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
+
+                var complaintProjection = await _db.ComplaintRequests.Where(c => c.Identifier == identifer)
+                    .Select(c => new
+                    {
+                        complaint = c,
+                        crimeType = _db.CrimeTypes.Where(ct => ct.CrimeId == c.CrimeTypeId).Select(ct => ct.CrimeName).FirstOrDefault(),
+                        jursidiction = _db.JurisdictionMasters.Where(j => j.JurisdictionId == c.JurisdictionId).Select(j => j.JurisdictionName).FirstOrDefault(),
+                        investigation = _db.Investigations.Where(i => i.InvestigationId == c.InvestigationId).Select(i => new
+                        {
+                            investigationid = i.InvestigationId,
+                            investigationDescription = i.InvestigationDescription,
+                            startDateString = i.StartDate.HasValue ? i.StartDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                            endDateString = i.EndDate.HasValue ? i.EndDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                            ioOfficerName = _db.UserMasters.Where(u => u.UserId == i.IoOfficerId).Select(u => u.UserName).FirstOrDefault(),
+                            priority = i.Priority,
+                            startDate = i.StartDate.HasValue ? i.StartDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                            ioOfficerId = i.IoOfficerId,
+                            identifier = i.Identifier
+                        }).FirstOrDefault(),
+                        compliantReportDate = c.DateReported.HasValue ? c.DateReported.Value.ToString("dd-MM-yyyy") : string.Empty,
+                    }).FirstOrDefaultAsync();
+
+                if(complaintProjection == null)
+                {
+                    throw new CustomException("Complaint not found");
+                }
+
+                var complaints = complaintProjection.complaint;
+                var investigation = complaintProjection.investigation;
+
+                var response = new CrimeDetailsResponse
+                {
+                    complaintIdentifier = complaints.Identifier,
+                    complaintName = complaints.ComplaintName,
+                    crimeType = complaintProjection.crimeType,
+                    jurisdiction = complaintProjection.jursidiction,
+                    incidentDate = complaintProjection.compliantReportDate,
+                    crimeDescription = complaints.CrimeDescription,
+
+                    investigation = new InvestigationSetupDTO
+                    {
+                        priority = investigation?.priority == null ? "" : investigation?.priority,
+                        startDate = investigation?.startDate == null ? "" : investigation?.startDate,
+                        investigationDescription = investigation?.investigationDescription == null ? "" : investigation?.investigationDescription,
+                    }
+                };
+
+
+                if(investigation?.ioOfficerId != null)
+                {
+                    var officer = await _db.UserMasters.Where(u => u.UserId == investigation.ioOfficerId).Select(u => u.UserName).FirstOrDefaultAsync();
+
+                    if (!string.IsNullOrWhiteSpace(officer))
+                    {
+                        response.investigation.assignedIo = officer;
+                    }
+                }
+
+                var evidenceDetails = await _db.EvidenceAttachments.Where(e => e.ComplaintId == complaints.ComplaintRequestId)
+                                                  .Select(e => new
+                                                  {
+                                                      e.EvidenceAttachmentPath,
+                                                      e.Identifier,
+                                                      e.CreatedOn,
+                                                      e.EvidenceAttachmentId
+                                                  }).ToListAsync();
+
+
+                var currentStatus = await _db.Statusmasters.Where(s => s.Statusid == complaints.StatusId)
+                    .Select(s => new { s.Statusid,s.Identifier, s.Status }).FirstOrDefaultAsync();
+
+                
+                response.workflow = new WorkFlowControlDTO
+                {
+                    CurrentStatus = currentStatus?.Status
+                };
+
+                if(currentStatus != null)
+                {
+                    var nextStatusIds = await _db.StatusTransitionRules.Where(r => r.FromStatusId == currentStatus.Statusid && r.IsActive)
+                        .Select(r => r.ToStatusId).Distinct().ToListAsync();
+
+                    if(nextStatusIds?.Any() == true)
+                    {
+                         var nextStatus = await _db.Statusmasters.Where(s => nextStatusIds.Contains(s.Statusid))
+                            .Select(s => new StatusOptionDTO { statusId = s.Statusid,statusIdentifier = s.Identifier , statusName = s.Status}).ToListAsync();
+
+                        response.workflow.availableNextStatus = nextStatus;
+                    }
+                    else
+                    {
+                        response.workflow.availableNextStatus = new List<StatusOptionDTO>();
+                    }
+                }
+
+                //if(userId == 1) // displaying the details of audit trail only for admin 
+                //{
+                //    var auditItems = new List<AuditTrailDTO>();
+                //    if (investigation?.identifier != null)
+                //    {
+                //        var stages = await _db.InvestigationStageHistories.Where(h => h.Identifier == investigation.identifier)
+                //            .OrderBy(h => h.CreatedOn).ToListAsync();
+
+                //        foreach(var s in stages)
+                //        {
+                //            var prev = (string?)null;
+                //            var @new = s.InvestigationStageHistory1;
+                //            if(!string.IsNullOrEmpty(s.InvestigationStageHistory1))
+                //        }
+                //    }
+                //}
+
+                var notes = await _db.CaseNotes.Where(n => n.CrimeId == complaints.ComplaintRequestId).OrderBy(n => n.CreatedOn)
+                    .Select(n => new
+                    {
+                        n.CaseNote1,
+                        n.CaseNoteId,
+                        n.CreatedOn,
+                        n.CreatedBy
+                    }).ToListAsync();
+
+                response.comments = new List<CommentDTO>();
+                foreach(var n in notes)
+                {
+                    string commentBy = null;
+                    if(n.CreatedBy != null)
+                    {
+                        commentBy = await _db.UserMasters.Where(u => u.UserId == n.CreatedBy).Select(u => u.UserName).FirstOrDefaultAsync();
+                    }
+
+                    response.comments.Add(new CommentDTO
+                    {
+                        commentText = n.CaseNote1,
+                        commentBy = commentBy,
+                        commentDate = n.CreatedOn.HasValue ? n.CreatedOn.Value.ToString("dd-MM-yyyy") : string.Empty
+                    });
+                }
+                 
+
+                
+
+
+
+                    //var data = await (from cmp in _db.ComplaintRequests
+                    //                  join jurisdiction in _db.JurisdictionMasters on cmp.JurisdictionId equals jurisdiction.JurisdictionId into jurisdictiontemp
+                    //                  from jurisdictiondata in jurisdictiontemp.DefaultIfEmpty()
+                    //                  join crimeType in _db.CrimeTypes on cmp.CrimeTypeId equals crimeType.CrimeId into crimeTypetemp
+                    //                  from crimeTypedata in crimeTypetemp.DefaultIfEmpty()
+                    //                  join user in _db.UserMasters on cmp.CreatedBy equals user.UserId into usertemp
+                    //                  from userdata in usertemp.DefaultIfEmpty()
+                    //                  join invdata in _db.Investigations on cmp.InvestigationId equals invdata.InvestigationId into invdatatemp
+                    //                  from inv in invdatatemp.DefaultIfEmpty()
+                    //                  join invuserdata in _db.UserMasters on inv.IoOfficerId equals invuserdata.UserId into invusertemp
+                    //                  from invuser in invusertemp.DefaultIfEmpty()
+                    //                  join stdata in _db.Statusmasters on cmp.StatusId equals stdata.Statusid into stdatatemp
+                    //                  from sts in stdatatemp.DefaultIfEmpty()
+                    //                  where cmp.Identifier == identifer
+                    //                  select new CrimeReportDTO
+                    //                  {
+                    //                      ComplaintName = cmp.ComplaintName,
+                    //                      jurisdictionIdentifier = jurisdictiondata.Identifier,
+                    //                      jurisdictionName = jurisdictiondata.JurisdictionName,
+                    //                      crimeTypeIdentifier = crimeTypedata.Identifier,
+                    //                      crimeTypeName = crimeTypedata.CrimeName,
+                    //                      CrimeDescription = cmp.CrimeDescription,
+                    //                      PhoneNumber = cmp.PhoneNumber,
+                    //                      dateReportString = cmp.DateReported.HasValue ? cmp.DateReported.Value.ToString("dd-MM-yyyy") : string.Empty,
+                    //                      userIdentifier = userdata.Identifier,
+                    //                      investigationDescription = inv.InvestigationDescription,
+                    //                      startDateString = inv.StartDate.HasValue ? inv.StartDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                    //                      endDateString = inv.EndDate.HasValue? inv.EndDate.Value.ToString("dd-MM-yyyy") : string.Empty,
+                    //                      victimName = userdata.UserName,
+                    //                      ioOfficerName = invuser.UserName,
+                    //                      statusName = sts.Status,
+                    //                  }).FirstOrDefaultAsync();
+
+
+
+                    return response;
             }
             catch(CustomException ex)
             {
