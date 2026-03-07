@@ -22,12 +22,15 @@ namespace CrimeManagement.Services
         private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase) { "image/jpeg", "image/png", "application/pdf" };
         private const long MasFileSize = 10 * 1024 * 1024; // 10 MB
         private const int FileSignatureCheckBytes = 8;
+
         public FileUploadService(CrimeDbContext db, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
         {
             _db = db;
             _httpContextAccessor = httpContextAccessor;
             _env = env;
         }
+
+
         public async Task<bool> DoUploadEvidenceFiles(EvidenceUploadRequestDTO request)
         {
             if (request != null)

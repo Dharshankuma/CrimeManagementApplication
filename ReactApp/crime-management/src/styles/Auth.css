@@ -1,0 +1,26 @@
+
+.login-wrapper {
+  /* background-image: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); */
+}
+
+.login-card {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-card .btn-outline-dark {
+  padding: 12px;
+  font-weight: 500;
+  border-color: #e2e8f0;
+  transition: all 0.2s;
+}
+
+.login-card .btn-outline-dark:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}

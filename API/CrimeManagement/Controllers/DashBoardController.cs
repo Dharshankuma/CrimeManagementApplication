@@ -18,6 +18,8 @@ namespace CrimeManagement.Controllers
             _service = service;
         }
 
+        [HttpGet]
+        [Route("DoGetDashBoardDetails")]
         public async Task<IActionResult> DoGetCrimeDashBoardDetails()
         {
             try

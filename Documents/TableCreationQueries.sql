@@ -305,4 +305,12 @@ CREATE TABLE IOJurisdictionAssign (
 );
 
 
+alter table evidenceattachment
+add filename varchar(255) null;
+
+alter table evidenceattachmentbackup
+add filename varchar(255) null;
+
+
+
 
