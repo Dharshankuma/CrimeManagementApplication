@@ -36,7 +36,7 @@ namespace CrimeManagement.Services
                                       from role in roledatatemp.DefaultIfEmpty()
                                       join desgdata in _db.DesignationMasters on user.DesignationId equals desgdata.DesignationId into desgdatatemp
                                       from desg in desgdatatemp.DefaultIfEmpty()
-                                      where user.UserName.ToLower() == userName.ToLower() && user.Status == "Active"
+                                      where user.UserName.ToLower() == userName.ToLower() || user.EmailId.ToLower() == userName.ToLower() && user.Status == "Active"
                                       select new UserLoginDetails
                                       {
                                           UserName = user.UserName,

@@ -1,18 +1,21 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Admin.css';
 
 const ProfilePage = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    fullName: user?.name || 'John Admin',
-    email: user?.email || 'admin@police.gov',
-    mobile: '9000000000',
-    aadhar: 'XXXX-XXXX-1234',
-    address: 'Police Headquarters, 5th Floor, Block B, Civil Lines'
+    fullName: (user?.firstname || '') + " " + (user?.lastname || ''),
+    email: user?.emailId || '',
+    mobile: '',
+    aadhar: '',
+    address: ''
   });
-  
+
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleInputChange = (e) => {
@@ -24,6 +27,11 @@ const ProfilePage = () => {
     e.preventDefault();
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const handleResetToken = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -59,11 +67,11 @@ const ProfilePage = () => {
                     <div className="col-md-6">
                       <div className="cms-form-group">
                         <label className="cms-label">Full Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="fullName"
-                          className="cms-input" 
-                          value={formData.fullName} 
+                          className="cms-input"
+                          value={formData.fullName}
                           onChange={handleInputChange}
                         />
                       </div>
@@ -71,11 +79,11 @@ const ProfilePage = () => {
                     <div className="col-md-6">
                       <div className="cms-form-group">
                         <label className="cms-label">Email Address</label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           name="email"
-                          className="cms-input" 
-                          value={formData.email} 
+                          className="cms-input"
+                          value={formData.email}
                           onChange={handleInputChange}
                         />
                       </div>
@@ -83,11 +91,11 @@ const ProfilePage = () => {
                     <div className="col-md-6">
                       <div className="cms-form-group">
                         <label className="cms-label">Mobile Number</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="mobile"
-                          className="cms-input" 
-                          value={formData.mobile} 
+                          className="cms-input"
+                          value={formData.mobile}
                           onChange={handleInputChange}
                         />
                       </div>
@@ -95,12 +103,12 @@ const ProfilePage = () => {
                     <div className="col-md-6">
                       <div className="cms-form-group">
                         <label className="cms-label">Aadhar Number (Linked)</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="aadhar"
-                          className="cms-input" 
-                          value={formData.aadhar} 
-                          disabled 
+                          className="cms-input"
+                          value={formData.aadhar}
+                          disabled
                           title="Contact central admin to change identity verification"
                         />
                         <div className="extra-small text-muted mt-1">Verified via UIDAI</div>
@@ -109,17 +117,17 @@ const ProfilePage = () => {
                     <div className="col-12">
                       <div className="cms-form-group">
                         <label className="cms-label">Official Address</label>
-                        <textarea 
+                        <textarea
                           name="address"
-                          className="cms-textarea" 
-                          rows="3" 
-                          value={formData.address} 
+                          className="cms-textarea"
+                          rows="3"
+                          value={formData.address}
                           onChange={handleInputChange}
                         ></textarea>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
                     <div className="text-muted small">
                       <i className="bi bi-shield-lock me-1"></i>
@@ -137,7 +145,7 @@ const ProfilePage = () => {
               <div className="card-body p-4">
                 <h5 className="cms-card-title text-danger mb-3">System Access</h5>
                 <p className="small text-muted mb-3">If you suspect your credentials have been compromised, please reset your authentication key immediately.</p>
-                <button className="cms-btn cms-btn-danger-outline">
+                <button className="cms-btn cms-btn-danger-outline" onClick={handleResetToken}>
                   <i className="bi bi-key"></i> Reset Authentication Token
                 </button>
               </div>

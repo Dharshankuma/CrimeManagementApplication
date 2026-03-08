@@ -15,11 +15,12 @@ body {
     Roboto,
     sans-serif;
   color: #334155;
-  padding-top: 76px; /* Space for fixed-top navbar */
+  padding-top: 40px; /* Space for fixed-top navbar */
 }
 
 .main-content {
-  padding: 50px 30px;
+  padding: 40px 20px;
+  font-size: 14px !important;
 }
 .navbar {
   background-color: #0f172a !important; /* Deeper dark for high contrast */

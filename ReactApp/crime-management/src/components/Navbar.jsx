@@ -22,13 +22,13 @@ const Navbar = () => {
           <span className="text-white">CMS</span>
           <span className="ms-2 d-none d-sm-inline opacity-75 small fw-normal">Police Portal</span>
         </Link>
-        <button 
-          className="navbar-toggler border-0" 
-          type="button" 
-          data-bs-toggle="collapse" 
+        <button
+          className="navbar-toggler border-0"
+          type="button"
+          data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
           aria-controls="navbarNav"
-          aria-expanded="false" 
+          aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
@@ -41,9 +41,11 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className={`nav-link ${isActive('/complaints')}`} to="/complaints">Complaints</Link>
             </li>
-            <li className="nav-item">
-              <Link className={`nav-link ${isActive('/investigations')}`} to="/investigations">Investigations</Link>
-            </li>
+            {user?.role !== UserRole.PUBLIC && (
+              <li className="nav-item">
+                <Link className={`nav-link ${isActive('/investigations')}`} to="/investigations">Investigations</Link>
+              </li>
+            )}
             {user?.role === UserRole.ADMIN && (
               <li className="nav-item">
                 <Link className={`nav-link ${isActive('/admin')}`} to="/admin">
@@ -58,8 +60,8 @@ const Navbar = () => {
                 <i className="bi bi-person h6 mb-0"></i>
               </div>
               <div className="lh-1">
-                <div className="small fw-bold">{user?.name}</div>
-                <div className="extra-small text-muted">{user?.role}</div>
+                <div className="small fw-bold">{user?.userName}</div>
+                <div className="extra-small text-white">{user?.role}</div>
               </div>
             </Link>
             <button className="btn btn-outline-danger btn-sm px-3" onClick={handleLogout}>

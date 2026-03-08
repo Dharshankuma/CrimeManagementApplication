@@ -51,7 +51,7 @@ namespace CrimeManagement.Controllers
                     throw new CustomException("User does not exist");
 
                 
-                if (CustomHelper.VerifyPassword(objdto.password,userDetails.HashPassword))
+                if (!CustomHelper.VerifyPassword(objdto.password,userDetails.HashPassword))
                     throw new CustomException("Incorrect Password");
 
 

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export const UserRole = {
   ADMIN: 'Admin',
   OFFICER: 'Officer',
-  PUBLIC: 'Public User'
+  PUBLIC: 'Citizen'
 };
 
 const AuthContext = createContext(undefined);
