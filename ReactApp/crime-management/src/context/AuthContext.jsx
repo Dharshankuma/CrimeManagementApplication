@@ -12,10 +12,31 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decodedJson = atob(payloadBase64);
+      const decoded = JSON.parse(decodedJson);
+      if (!decoded.exp) return false;
+      // decoded.exp is in seconds, Date.now() is milliseconds
+      return Date.now() >= decoded.exp * 1000;
+    } catch (e) {
+      return true;
+    }
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem('crime_system_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem('crime_system_token');
+
+    if (savedUser && token) {
+      if (!isTokenExpired(token)) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        localStorage.removeItem('crime_system_user');
+        localStorage.removeItem('crime_system_token');
+      }
     }
     setLoading(false);
   }, []);
@@ -32,8 +53,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('crime_system_token');
   };
 
+  const checkTokenStatus = () => {
+    const token = localStorage.getItem('crime_system_token');
+    return !isTokenExpired(token);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, checkTokenStatus }}>
       {children}
     </AuthContext.Provider>
   );

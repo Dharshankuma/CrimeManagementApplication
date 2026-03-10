@@ -2,6 +2,33 @@ import axios from 'axios';
 
 const baseURL = "https://localhost:7192/api/";
 
+let globalSetLoading = null;
+let requestCount = 0;
+
+export const setLoaderCallback = (callback) => {
+  globalSetLoading = callback;
+};
+
+axios.interceptors.request.use((config) => {
+  requestCount++;
+  if (globalSetLoading) globalSetLoading(true);
+  return config;
+}, (error) => {
+  requestCount = Math.max(0, requestCount - 1);
+  if (requestCount === 0 && globalSetLoading) globalSetLoading(false);
+  return Promise.reject(error);
+});
+
+axios.interceptors.response.use((response) => {
+  requestCount = Math.max(0, requestCount - 1);
+  if (requestCount === 0 && globalSetLoading) globalSetLoading(false);
+  return response;
+}, (error) => {
+  requestCount = Math.max(0, requestCount - 1);
+  if (requestCount === 0 && globalSetLoading) globalSetLoading(false);
+  return Promise.reject(error);
+});
+
 /**
  * Helper to get the default headers with or without an optional token.
  * Extracted here to avoid duplicating the Token logic across all methods.

@@ -60,7 +60,7 @@ const Navbar = () => {
                 <i className="bi bi-person h6 mb-0"></i>
               </div>
               <div className="lh-1">
-                <div className="small fw-bold">{user?.userName}</div>
+                <div className="small fw-bold">{user?.firstname + " " + user?.lastname}</div>
                 <div className="extra-small text-white">{user?.role}</div>
               </div>
             </Link>

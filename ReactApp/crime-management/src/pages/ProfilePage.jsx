@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AuthService from '../services/AuthService';
 import '../styles/Admin.css';
 
 const ProfilePage = () => {
@@ -17,16 +18,62 @@ const ProfilePage = () => {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const aadharRegex = /^[0-9]{12}$/;
+
+    if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (!phoneRegex.test(formData.mobile)) {
+      newErrors.mobile = "Phone number must contain 10 digits";
+    }
+    if (!aadharRegex.test(formData.aadhar)) {
+      newErrors.aadhar = "Aadhaar number must contain 12 digits";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+
+    try {
+      const names = formData.fullName.trim().split(' ');
+      const firstName = names[0] || '';
+      const lastName = names.slice(1).join(' ') || '';
+
+      const payload = {
+        identifier: user?.userIdentifier,
+        firstName: firstName,
+        lastName: lastName,
+        phoneNo: formData.mobile,
+        emailId: formData.email,
+        aadhaar: formData.aadhar,
+        address: formData.address
+      };
+
+      const response = await AuthService.PostServiceCallToken("User/UpdateProfile", payload);
+
+      if (response && response.responseStatus === "success") {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   const handleResetToken = () => {
@@ -40,7 +87,13 @@ const ProfilePage = () => {
         <div className="row justify-content-center">
           <div className="col-lg-8">
             <div className="mb-4">
-              <h1 className="cms-title">Officer Profile</h1>
+              <button
+                className="btn btn-link ps-0 text-decoration-none text-muted mb-2"
+                onClick={() => navigate('/dashboard')}
+              >
+                <i className="bi bi-arrow-left me-1"></i> Back to Dashboard
+              </button>
+              <h1 className="cms-title">{user?.role} Profile</h1>
               <p className="cms-subtitle">Manage your personal and system identification information</p>
             </div>
 
@@ -86,6 +139,7 @@ const ProfilePage = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                         />
+                        {errors.email && <div className="text-danger small mt-1">{errors.email}</div>}
                       </div>
                     </div>
                     <div className="col-md-6">
@@ -98,20 +152,22 @@ const ProfilePage = () => {
                           value={formData.mobile}
                           onChange={handleInputChange}
                         />
+                        {errors.mobile && <div className="text-danger small mt-1">{errors.mobile}</div>}
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="cms-form-group">
-                        <label className="cms-label">Aadhar Number (Linked)</label>
+                        <label className="cms-label">Aadhar Number</label>
                         <input
                           type="text"
                           name="aadhar"
                           className="cms-input"
                           value={formData.aadhar}
-                          disabled
+                          onChange={handleInputChange}
                           title="Contact central admin to change identity verification"
                         />
-                        <div className="extra-small text-muted mt-1">Verified via UIDAI</div>
+                        {errors.aadhar && <div className="text-danger small mt-1">{errors.aadhar}</div>}
+
                       </div>
                     </div>
                     <div className="col-12">

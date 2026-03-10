@@ -1,5 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import AuthService from '../services/AuthService';
 import '../styles/Dashboard.css';
 
 const StatCard = ({ title, value, icon, color, trend }) => (
@@ -19,6 +20,38 @@ const StatCard = ({ title, value, icon, color, trend }) => (
 );
 
 const DashboardPage = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+  //const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await AuthService.GetServiceCallWithToken("DashBoard/DoGetDashBoardDetails");
+        if (response && response.responseStatus === "success") {
+          console.log(response)
+          setDashboardData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        //   setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // if (loading) {
+  //   return (
+  //     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+  //       <div className="spinner-border text-primary" role="status">
+  //         <span className="visually-hidden">Loading...</span>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   return (
     <div className="dashboard-page">
       <div className="row mb-4">
@@ -30,16 +63,16 @@ const DashboardPage = () => {
 
       <div className="row g-4 mb-5">
         <div className="col-12 col-md-6 col-lg-3">
-          <StatCard title="Total Complaints" value="1,284" icon="clipboard-data" color="primary" trend="12% from last month" />
+          <StatCard title="Total Complaints" value={dashboardData?.totalComplaints || 0} icon="clipboard-data" color="primary" trend={`${dashboardData?.overAllStatus || 0}% from last month`} />
         </div>
         <div className="col-12 col-md-6 col-lg-3">
-          <StatCard title="Under Investigation" value="342" icon="search" color="warning" />
+          <StatCard title="Under Investigation" value={dashboardData?.underInvestigation || 0} icon="search" color="warning" />
         </div>
         <div className="col-12 col-md-6 col-lg-3">
-          <StatCard title="Evidence Collected" value="5,821" icon="box-seam" color="info" />
+          <StatCard title="Evidence Collected" value={dashboardData?.evidenceCollected || 0} icon="box-seam" color="info" />
         </div>
         <div className="col-12 col-md-6 col-lg-3">
-          <StatCard title="Resolved Cases" value="894" icon="check-circle" color="success" />
+          <StatCard title="Resolved Cases" value={dashboardData?.resolvedCases || 0} icon="check-circle" color="success" />
         </div>
       </div>
 
@@ -62,24 +95,20 @@ const DashboardPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>#C1001</td>
-                      <td>Vehicle Theft</td>
-                      <td>Off. Smith</td>
-                      <td>2 hours ago</td>
-                    </tr>
-                    <tr>
-                      <td>#C1002</td>
-                      <td>Assault</td>
-                      <td>Off. Johnson</td>
-                      <td>4 hours ago</td>
-                    </tr>
-                    <tr>
-                      <td>#C1003</td>
-                      <td>Vandalism</td>
-                      <td>Off. Davis</td>
-                      <td>Yesterday</td>
-                    </tr>
+                    {dashboardData?.recentsComplaints && dashboardData.recentsComplaints.length > 0 ? (
+                      dashboardData.recentsComplaints.map((complaint, index) => (
+                        <tr key={index}>
+                          <td>{complaint.crimeId}</td>
+                          <td>{complaint.crimeType}</td>
+                          <td>{complaint.ioOfficerName}</td>
+                          <td>{complaint.lastUpdated}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center">No recent activities found</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -94,7 +123,7 @@ const DashboardPage = () => {
               </div>
               <h4>Register New Complaint</h4>
               <p className="small opacity-75">Immediately start a new case record and assign priority.</p>
-              <button className="btn btn-light mt-2 fw-bold text-primary">Get Started</button>
+              <button className="btn btn-light mt-2 fw-bold text-primary" onClick={() => navigate('/complaints/create')}>Get Started</button>
             </div>
           </div>
         </div>
