@@ -108,7 +108,9 @@ namespace CrimeManagement.Controllers
                         userName = name,
                         emailId = email,
                         authProvider = "Google",
-                        externalProviderId = googleId
+                        externalProviderId = googleId,
+                        firstName = payload.GivenName,
+                        lastName = payload.FamilyName,
                     };
 
                     await _loginService.DoRegisterUser(registerDto);

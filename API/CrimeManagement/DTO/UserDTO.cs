@@ -78,6 +78,7 @@
 
     public class UserLoginDetails
     {
+        public int?  userId { get; set; }
         public string? userIdentifier { get; set; }
         public string? UserName { get; set; }
         public string? Firstname { get; set; }

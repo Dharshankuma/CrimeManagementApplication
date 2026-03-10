@@ -53,6 +53,11 @@ namespace CrimeManagement.Services
                     dto.overAllStatus = 0;
                 }
 
+                foreach (var claim in _httpContextAccessor.HttpContext.User.Claims)
+                {
+                    Console.WriteLine($"{claim.Type} : {claim.Value}");
+                }
+
                 int.TryParse(
              _httpContextAccessor.HttpContext?.User
                  .FindFirst("UserId")?.Value,

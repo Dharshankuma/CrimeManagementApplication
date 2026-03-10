@@ -101,47 +101,67 @@ namespace CrimeManagement.Services
             var response = new CommonResponseDTO();
             try
             {
-                
-                if (userDetails != null)
+
+                if (userDetails == null)
+                    throw new CustomException("User details are required to generate token.");
+
+                // Validate configuration values required for token creation
+                var jwtKey = _config?["JWT:Key"];
+                var jwtIssuer = _config?["JWT:Issuer"];
+                var jwtAudience = _config?["JWT:Audience"];
+                var jwtSubject = _config?["JWT:Subject"];
+                var jwtExpireMinutesString = _config?["JWT:ExpireMinutes"];
+
+                if (string.IsNullOrWhiteSpace(jwtKey))
+                    throw new CustomException("JWT key is not configured.");
+                if (string.IsNullOrWhiteSpace(jwtIssuer))
+                    throw new CustomException("JWT issuer is not configured.");
+                if (string.IsNullOrWhiteSpace(jwtAudience))
+                    throw new CustomException("JWT audience is not configured.");
+
+                if (!int.TryParse(jwtExpireMinutesString, out var expiryMinutes))
+                    expiryMinutes = 60; // reasonable default
+
+                // Build claims safely (avoid NullReferenceException when properties are null)
+                var claims = new List<Claim>
                 {
-                    var claims = new[]
-               {
-            new Claim(JwtRegisteredClaimNames.Sub, _config["JWT:Subject"]),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-            new Claim("Id", userDetails.userIdentifier.ToString()),
-            new Claim("UserName", $"{userDetails.UserName}"),
-            new Claim("Email", userDetails.EmailId)
-        };
+                    new Claim(JwtRegisteredClaimNames.Sub, jwtSubject ?? string.Empty),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                };
 
-                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Key"]));
-                    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                // Add user specific claims only if values are present (or use empty string)
+                claims.Add(new Claim("UserId", userDetails.userId.ToString() ?? string.Empty));
+                claims.Add(new Claim("UserIdentifier", userDetails.userIdentifier ?? string.Empty));
+                claims.Add(new Claim("UserName", userDetails.UserName ?? string.Empty));
+                claims.Add(new Claim("Email", userDetails.EmailId ?? string.Empty));
 
-                    var expiryMinutes = int.Parse(_config["JWT:ExpireMinutes"]);
-                    var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-                    var token = new JwtSecurityToken(
-                        issuer: _config["JWT:Issuer"],
-                        audience: _config["JWT:Audience"],
-                        claims: claims,
-                        expires: expiresAt,
-                        signingCredentials: creds
-                    );
+                var expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
 
-                    var authToken = new JwtSecurityTokenHandler().WriteToken(token);
+                var token = new JwtSecurityToken(
+                    issuer: jwtIssuer,
+                    audience: jwtAudience,
+                    claims: claims,
+                    expires: expiresAt,
+                    signingCredentials: creds
+                );
 
-                    var loginDetails = new LoginDetails
-                    {
-                        userDetails = userDetails,
-                        token = authToken,
-                        expiryTime = expiryMinutes
-                    };
+                var authToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-                    response.responseCode = 200;
-                    response.responseStatus = "success";
-                    response.responseMessage = "Login successful";
-                    response.data = loginDetails;
-                }
+                var loginDetails = new LoginDetails
+                {
+                    userDetails = userDetails,
+                    token = authToken,
+                    expiryTime = expiryMinutes
+                };
+
+                response.responseCode = 200;
+                response.responseStatus = "success";
+                response.responseMessage = "Login successful";
+                response.data = loginDetails;
 
             }
             catch (CustomException ex)

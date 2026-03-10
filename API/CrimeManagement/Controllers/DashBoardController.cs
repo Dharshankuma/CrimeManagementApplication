@@ -1,6 +1,7 @@
 ﻿using CrimeManagement.DTO;
 using CrimeManagement.Helper;
 using CrimeManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Formats.Asn1;
 using static CrimeManagement.DTO.CrimeResponseDTO;
@@ -8,8 +9,10 @@ using static CrimeManagement.DTO.CrimeResponseDTO;
 namespace CrimeManagement.Controllers
 {
 
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    
     public class DashBoardController : ControllerBase
     {
         private readonly IDashBoardService _service;

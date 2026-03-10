@@ -11,6 +11,7 @@ namespace CrimeManagement.Services
         Task<UserLoginDetails> DoGetLoginUserDetails(string userName);
         Task<Data<List<UserDTO>>> DoGetUserDetails(UserGridDTO objdto);
         Task DoUpdateUserDetails(UserDTO objdto);
+        Task DoUpdateUserProfile(UserDTO objdto);
     }
     public class UserService : IUserService
     {
@@ -52,7 +53,8 @@ namespace CrimeManagement.Services
                                           RoleId = user.RoleId,
                                           DesignationId = user.DesignationId,
                                           HashPassword = user.HashPassword,
-                                          userIdentifier = user.Identifier
+                                          userIdentifier = user.Identifier,
+                                          userId = user.UserId,
                                       }).FirstOrDefaultAsync();
 
                 return userData;
@@ -118,6 +120,113 @@ namespace CrimeManagement.Services
                 throw ex;
             }
         }
+
+        public async Task DoUpdateUserProfile(UserDTO objdto)
+        {
+            if (objdto == null)
+                throw new ArgumentNullException(nameof(objdto));
+
+            try
+            {
+                var userDetails = await _db.UserMasters
+                    .FirstOrDefaultAsync(x => x.Identifier == objdto.identifier);
+
+                if (userDetails == null)
+                    throw new CustomException("User details not found.");
+
+                // Only mark as modified if values actually change to avoid unnecessary database updates
+                var isModified = false;
+
+                if (userDetails.Firstname != objdto.firstName)
+                {
+                    userDetails.Firstname = objdto.firstName;
+                    isModified = true;
+                }
+
+                if (userDetails.Lastname != objdto.lastName)
+                {
+                    userDetails.Lastname = objdto.lastName;
+                    isModified = true;
+                }
+
+                if (userDetails.MiddleName != objdto.middleName)
+                {
+                    userDetails.MiddleName = objdto.middleName;
+                    isModified = true;
+                }
+
+                if (userDetails.Address != objdto.address)
+                {
+                    userDetails.Address = objdto.address;
+                    isModified = true;
+                }
+
+                if (userDetails.PhoneNo != objdto.phoneNo)
+                {
+                    userDetails.PhoneNo = objdto.phoneNo;
+                    isModified = true;
+                }
+
+                if (userDetails.EmailId != objdto.emailId)
+                {
+                    userDetails.EmailId = objdto.emailId;
+                    isModified = true;
+                }
+
+                if (userDetails.Gender != objdto.gender)
+                {
+                    userDetails.Gender = objdto.gender;
+                    isModified = true;
+                }
+
+                if (userDetails.Aadhaar != objdto.aadhaar)
+                {
+                    userDetails.Aadhaar = objdto.aadhaar;
+                    isModified = true;
+                }
+
+                if (userDetails.Dob != objdto.dob)
+                {
+                    userDetails.Dob = objdto.dob;
+                    isModified = true;
+                }
+
+                if (userDetails.UserName != objdto.userName)
+                {
+                    userDetails.UserName = objdto.userName;
+                    isModified = true;
+                }
+
+                if (userDetails.Pan != objdto.pan)
+                {
+                    userDetails.Pan = objdto.pan;
+                    isModified = true;
+                }
+
+                if (userDetails.EmergencyContact != objdto.emergencyContact)
+                {
+                    userDetails.EmergencyContact = objdto.emergencyContact;
+                    isModified = true;
+                }
+
+                if (!isModified)
+                    return; // no changes detected; skip database round-trip
+
+                userDetails.ModifyBy = userDetails.UserId;
+                userDetails.ModifyOn = DateTime.Now;
+
+                await _db.SaveChangesAsync();
+            }
+            catch (CustomException) // rethrow known errors untouched
+            {
+                throw;
+            }
+            catch (Exception ex) // wrap unknowns with context
+            {
+                throw ex;
+            }
+        }
+
 
         public async Task<Data<List<UserDTO>>> DoGetUserDetails(UserGridDTO objdto)
         {

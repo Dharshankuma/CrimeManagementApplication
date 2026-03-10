@@ -66,5 +66,30 @@ namespace CrimeManagement.Controllers
                 return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = "failure" });
             }
         }
+
+        [HttpPost]
+        [Route("UpdateProfile")]
+        public async Task<IActionResult> DoUpdateProfile(UserDTO objdto)
+        {
+            try
+            {
+                if (objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 400, responseDatetime = DateTime.Now, responseMessage = "Invalid request", responseStatus = "failure" });
+                }
+
+                await _userService.DoUpdateUserProfile(objdto);
+
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "updated successfully", responseStatus = "success" });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = "failure" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = "failure" });
+            }
+        }
     }
 }
