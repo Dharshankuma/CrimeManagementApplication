@@ -32,22 +32,29 @@ namespace CrimeManagement.Services
         {
             try
             {
-                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value,out int userId);
 
-                //var userId = await _db.UserMasters
-                //                      .Where(u => u.Identifier == objdto.userIdentifier)
-                //                      .Select(u => u.UserId)
-                //                      .FirstOrDefaultAsync();
+                if (objdto == null)
+                    throw new CustomException("Invalid request");
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value,out int userId);
 
                 if (userId == 0)
                     throw new CustomException("User does not exist");
+
+               
 
                 var roleId = await _db.UserMasters
                                       .Where(u => u.UserId == userId)
                                       .Select(u => u.RoleId)
                                       .FirstOrDefaultAsync();       //1 - admin , 2 - officer , 3 - user
 
-                var query = from crime in _db.ComplaintRequests
+                IQueryable<ComplaintRequest> baseComplaints = _db.ComplaintRequests.AsNoTracking();
+
+                if (roleId != 1)
+                {
+                    baseComplaints = baseComplaints.Where(c => c.CreatedBy == userId);
+                }
+
+                var query = from crime in baseComplaints
                             join userdata in _db.UserMasters on crime.CreatedBy equals userdata.UserId into usertemp
                             from user in usertemp.DefaultIfEmpty()
                             join jurisdictiondata in _db.JurisdictionMasters on crime.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
@@ -56,7 +63,6 @@ namespace CrimeManagement.Services
                             from crimeType in crimeTypetemp.DefaultIfEmpty()
                             join stsdata in _db.Statusmasters on crime.StatusId equals stsdata.Statusid into stsdatatemp
                             from sts in stsdatatemp.DefaultIfEmpty()
-                            where (roleId == 1 || crime.CreatedBy == userId)
                             select new CrimeReportViewDTO
                             {
                                 reportIdentifer = crime.Identifier,
@@ -81,17 +87,23 @@ namespace CrimeManagement.Services
                     query = query.Where(q => q.reportIdentifer.Contains(objdto.crimeIdentifier.Trim()));
                 };
 
+                var search = objdto.search?.Trim().ToLower();
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    query = query.Where(x =>
+                (x.crimeType != null && x.crimeType.Contains(search)) ||
+                x.complaintName != null && x.complaintName.Contains(search) ||
+                x.jurisdictionName != null && x.jurisdictionName.Contains(search) ||
+                x.crimeStatusStr != null && x.crimeStatusStr.Contains(search)
+                ||
+                x.crimeReportDate != null && x.crimeReportDate.Contains(search));
+                }
+
+
                 if (!string.IsNullOrWhiteSpace(objdto.crimeType))
                 {
-                    var search = objdto.search.Trim().ToLower();
 
-                    query = query.Where(x =>
-                    (x.crimeType != null && x.crimeType.Contains(search)) ||
-                    x.complaintName != null && x.complaintName.Contains(search) ||
-                    x.jurisdictionName != null && x.jurisdictionName.Contains(search) ||
-                    x.crimeStatusStr != null && x.crimeStatusStr.Contains(search)
-                    ||
-                    x.crimeReportDate != null && x.crimeReportDate.Contains(search));                    
                 }
 
                 // Apply sorting

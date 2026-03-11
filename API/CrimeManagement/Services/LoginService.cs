@@ -135,6 +135,7 @@ namespace CrimeManagement.Services
                 claims.Add(new Claim("UserIdentifier", userDetails.userIdentifier ?? string.Empty));
                 claims.Add(new Claim("UserName", userDetails.UserName ?? string.Empty));
                 claims.Add(new Claim("Email", userDetails.EmailId ?? string.Empty));
+                claims.Add(new Claim("Roles", userDetails.Role ?? string.Empty));
 
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

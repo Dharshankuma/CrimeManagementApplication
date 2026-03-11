@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import StatusBadge from '../components/StatusBadge';
-import Timeline from '../components/Timeline';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth, UserRole } from '../context/AuthContext';
-import { 
-  COMPLAINTS, 
-  STATUS_WORKFLOW, 
-  MOCK_EVIDENCE, 
-  MOCK_COMMENTS, 
-  MOCK_TIMELINE 
-} from '../services/mockData';
+import StatusBadge from '../../components/StatusBadge';
+import Timeline from '../../components/Timeline';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { useAuth, UserRole } from '../../context/AuthContext';
+import {
+  COMPLAINTS,
+  STATUS_WORKFLOW,
+  MOCK_EVIDENCE,
+  MOCK_COMMENTS,
+  MOCK_TIMELINE
+} from '../../services/mockData';
 
 const InvestigationDetailsPage = () => {
   const { id } = useParams();
@@ -41,13 +41,13 @@ const InvestigationDetailsPage = () => {
   const isClosed = complaint.status === 'Closed' || complaint.status === 'Closed - No Action';
   const allowedNext = STATUS_WORKFLOW[complaint.status] || [];
   const showReasonField = newStatus === 'Closed - No Action';
-  
+
   const handleUpdateStatus = () => {
     if (newStatus === 'Closed - No Action' && !closingReason.trim()) {
       alert('Please provide a reason for closing the case.');
       return;
     }
-    
+
     if (newStatus === 'Closed - No Action') {
       setShowModal(true);
     } else {
@@ -84,7 +84,7 @@ const InvestigationDetailsPage = () => {
       <div className="row g-4">
         {/* Left Column: Case Information */}
         <div className="col-lg-8">
-          
+
           {/* A. Complaint Details Card */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header bg-white py-3 border-0">
@@ -111,8 +111,8 @@ const InvestigationDetailsPage = () => {
                 <div className="col-12">
                   <label className="text-muted small d-block">Full Description</label>
                   <p className="mb-0 text-secondary">
-                    Detailed report filed by complainant regarding {complaint.name.toLowerCase()}. 
-                    Initial assessment indicates potential involvement of local suspects. 
+                    Detailed report filed by complainant regarding {complaint.name.toLowerCase()}.
+                    Initial assessment indicates potential involvement of local suspects.
                     Immediate response was deployed to secure the scene.
                   </p>
                 </div>
@@ -146,9 +146,9 @@ const InvestigationDetailsPage = () => {
                 </div>
                 <div className="col-12">
                   <label className="form-label small">Field Notes</label>
-                  <textarea 
-                    className="form-control" 
-                    rows={3} 
+                  <textarea
+                    className="form-control"
+                    rows={3}
                     placeholder="Enter investigation progress notes..."
                     disabled={user?.role === UserRole.PUBLIC}
                   ></textarea>
@@ -193,9 +193,9 @@ const InvestigationDetailsPage = () => {
             <div className="card-body">
               <div className="mb-4">
                 <div className="input-group">
-                  <textarea 
-                    className="form-control" 
-                    placeholder="Add a comment or update..." 
+                  <textarea
+                    className="form-control"
+                    placeholder="Add a comment or update..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={1}
@@ -203,7 +203,7 @@ const InvestigationDetailsPage = () => {
                   <button className="btn btn-primary px-4" type="button" onClick={() => setComment('')}>Post</button>
                 </div>
               </div>
-              
+
               <div className="comments-list">
                 {MOCK_COMMENTS.map(c => (
                   <div key={c.id} className="d-flex mb-3">
@@ -226,7 +226,7 @@ const InvestigationDetailsPage = () => {
 
         {/* Right Column: Workflow & History */}
         <div className="col-lg-4">
-          
+
           {/* E. Status Section */}
           <div className="card shadow-sm border-0 mb-4 sticky-top" style={{ top: '80px', zIndex: 100 }}>
             <div className="card-header bg-white py-3 border-0">
@@ -237,13 +237,13 @@ const InvestigationDetailsPage = () => {
                 <label className="text-muted small">Current State</label>
                 <div className="h5 fw-bold mb-0 text-primary">{complaint.status}</div>
               </div>
-              
+
               {(user?.role === UserRole.ADMIN || user?.role === UserRole.OFFICER) && !isClosed ? (
                 <div className="mt-4 p-3 border rounded bg-light">
                   <label className="form-label small fw-bold">Update Status</label>
-                  <select 
-                    className="form-select mb-3" 
-                    value={newStatus} 
+                  <select
+                    className="form-select mb-3"
+                    value={newStatus}
                     onChange={(e) => {
                       setNewStatus(e.target.value);
                       if (e.target.value !== 'Closed - No Action') setClosingReason('');
@@ -256,9 +256,9 @@ const InvestigationDetailsPage = () => {
                   {showReasonField && (
                     <div className="mb-3">
                       <label className="form-label small text-danger fw-bold">Reason for Closure *</label>
-                      <textarea 
-                        className="form-control" 
-                        rows={2} 
+                      <textarea
+                        className="form-control"
+                        rows={2}
                         placeholder="Mandatory explanation..."
                         value={closingReason}
                         onChange={(e) => setClosingReason(e.target.value)}
@@ -267,8 +267,8 @@ const InvestigationDetailsPage = () => {
                     </div>
                   )}
 
-                  <button 
-                    className="btn btn-primary w-100" 
+                  <button
+                    className="btn btn-primary w-100"
                     disabled={!newStatus || updating}
                     onClick={handleUpdateStatus}
                   >
