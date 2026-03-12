@@ -80,6 +80,7 @@ namespace CrimeManagement.DTO
         public string? lastUpdatedDate { get; set; }
         public string? Location { get; set; }
         public int? statusId { get; set; }
+        public string? complaintIdentifier { get; set; }
     }
 
     public class InvestigationRequestviewDTO

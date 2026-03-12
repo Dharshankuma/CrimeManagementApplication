@@ -314,3 +314,37 @@ add filename varchar(255) null;
 
 
 
+INSERT INTO StatusTransitionRules
+(FromStatusId, ToStatusId, AllowedRoleId, IsActive, CreatedBy, CreatedOn)
+VALUES
+(1,2,2,1,NULL,GETDATE());
+
+INSERT INTO StatusTransitionRules
+VALUES
+(2,3,2,1,NULL,GETDATE());
+
+INSERT INTO StatusTransitionRules
+VALUES
+(2,4,2,1,NULL,GETDATE());
+
+INSERT INTO StatusTransitionRules
+VALUES
+(3,5,2,1,NULL,GETDATE());
+
+
+INSERT INTO StatusTransitionRules
+VALUES
+(5,6,2,1,NULL,GETDATE());
+
+
+INSERT INTO StatusTransitionRules
+VALUES
+(3,6,2,1,NULL,GETDATE());
+
+
+INSERT INTO StatusTransitionRules
+VALUES
+(4,6,2,1,NULL,GETDATE());
+
+
+

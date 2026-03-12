@@ -12,6 +12,8 @@
         public WorkFlowControlDTO? workflow { get; set; }
         public List<CommentDTO>? comments { get; set; }
         public List<AuditTrailDTO> auditTrail { get; set; }
+        public bool? isDisable { get; set; }
+        public List<EvidenceGridData>? evidenceAttachments { get; set; }
     }
 
     public class InvestigationSetupDTO

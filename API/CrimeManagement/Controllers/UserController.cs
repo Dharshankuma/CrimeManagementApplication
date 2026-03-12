@@ -1,11 +1,13 @@
 ﻿using CrimeManagement.DTO;
 using CrimeManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using static CrimeManagement.DTO.CrimeResponseDTO;
 
 namespace CrimeManagement.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     [EnableCors("CrimeManagement")]

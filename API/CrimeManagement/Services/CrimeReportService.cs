@@ -20,6 +20,7 @@ namespace CrimeManagement.Services
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _environment;
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEvidenceService _evidenceService;
         public CrimeReportService(CrimeDbContext db, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment, IConfiguration config, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
@@ -55,13 +56,13 @@ namespace CrimeManagement.Services
                 }
 
                 var query = from crime in baseComplaints
-                            join userdata in _db.UserMasters on crime.CreatedBy equals userdata.UserId into usertemp
+                            join userdata in _db.UserMasters.AsNoTracking() on crime.CreatedBy equals userdata.UserId into usertemp
                             from user in usertemp.DefaultIfEmpty()
-                            join jurisdictiondata in _db.JurisdictionMasters on crime.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
+                            join jurisdictiondata in _db.JurisdictionMasters.AsNoTracking() on crime.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
                             from jurisdiction in jurisdictiontemp.DefaultIfEmpty()
-                            join crimeTypedata in _db.CrimeTypes on crime.CrimeTypeId equals crimeTypedata.CrimeId into crimeTypetemp
+                            join crimeTypedata in _db.CrimeTypes.AsNoTracking() on crime.CrimeTypeId equals crimeTypedata.CrimeId into crimeTypetemp
                             from crimeType in crimeTypetemp.DefaultIfEmpty()
-                            join stsdata in _db.Statusmasters on crime.StatusId equals stsdata.Statusid into stsdatatemp
+                            join stsdata in _db.Statusmasters.AsNoTracking() on crime.StatusId equals stsdata.Statusid into stsdatatemp
                             from sts in stsdatatemp.DefaultIfEmpty()
                             select new CrimeReportViewDTO
                             {
@@ -229,6 +230,12 @@ namespace CrimeManagement.Services
 
 
                 int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
+                var roleId = await _db.UserMasters.AsNoTracking()
+                                      .Where(u => u.UserId == userId)
+                                      .Select(u => u.RoleId)
+                                      .FirstOrDefaultAsync();       //1 - admin , 2 - officer , 3 - user
+
+                bool isDisable = roleId == 1 || roleId == 3;
 
                 var complaintProjection = await _db.ComplaintRequests.Where(c => c.Identifier == identifer)
                     .Select(c => new
@@ -273,7 +280,8 @@ namespace CrimeManagement.Services
                         priority = investigation?.priority == null ? "" : investigation?.priority,
                         startDate = investigation?.startDate == null ? "" : investigation?.startDate,
                         investigationDescription = investigation?.investigationDescription == null ? "" : investigation?.investigationDescription,
-                    }
+                    },
+                    isDisable = isDisable
                 };
 
 
@@ -366,9 +374,15 @@ namespace CrimeManagement.Services
                         commentDate = n.CreatedOn.HasValue ? n.CreatedOn.Value.ToString("dd-MM-yyyy") : string.Empty
                     });
                 }
-                 
 
+                var evidenceList = await _evidenceService.DoGetEvidenceGridDetails(complaints.Identifier);
                 
+                if(evidenceList?.Any() == true)
+                {
+                    response.evidenceAttachments = evidenceList;
+                }
+
+
 
 
 

@@ -20,6 +20,9 @@ namespace CrimeManagement.Services
 
         public async Task ValidationStatusTransaction(int? fromStatusId , int? toStatusId , int? roleId)
         {
+            if (fromStatusId == null || toStatusId == null || roleId == null)
+                throw new CustomException("Invalid workflow parameters");
+
             bool allowed = await _db.StatusTransitionRules.AnyAsync(x => x.FromStatusId == fromStatusId && x.ToStatusId == toStatusId && x.AllowedRoleId == roleId && x.IsActive);
 
             if (!allowed)

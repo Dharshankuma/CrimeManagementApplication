@@ -5,21 +5,21 @@ namespace CrimeManagement.Models;
 
 public partial class InvestigationStageHistory
 {
-    public int StageId { get; set; }
+    public int StageHistoryId { get; set; }
 
-    public string? Identifier { get; set; }
+    public Guid? Identifier { get; set; }
 
-    public string? InvestigationStageHistory1 { get; set; }
+    public int InvestigationId { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public int? FromStatusId { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public int ToStatusId { get; set; }
 
-    public int? CreatedBy { get; set; }
+    public int? ChangedBy { get; set; }
 
-    public DateTime? CreatedOn { get; set; }
+    public DateTime? ChangedOn { get; set; }
 
-    public int? ModifyBy { get; set; }
+    public string? Remarks { get; set; }
 
-    public DateTime? ModifyOn { get; set; }
+    public bool? IsActive { get; set; }
 }

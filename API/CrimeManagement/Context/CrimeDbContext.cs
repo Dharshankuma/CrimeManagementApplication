@@ -325,21 +325,16 @@ public partial class CrimeDbContext : DbContext
 
         modelBuilder.Entity<InvestigationStageHistory>(entity =>
         {
-            entity.HasKey(e => e.StageId).HasName("PK__Investig__03EB7AD8D4DD2873");
+            entity.HasKey(e => e.StageHistoryId).HasName("PK__Investig__0A60114D5001E128");
 
             entity.ToTable("InvestigationStageHistory");
 
-            entity.Property(e => e.CreatedOn).HasColumnType("datetime");
-            entity.Property(e => e.EndDate).HasColumnType("datetime");
-            entity.Property(e => e.Identifier)
-                .HasMaxLength(36)
-                .IsUnicode(false);
-            entity.Property(e => e.InvestigationStageHistory1)
-                .HasMaxLength(500)
-                .IsUnicode(false)
-                .HasColumnName("InvestigationStageHistory");
-            entity.Property(e => e.ModifyOn).HasColumnType("datetime");
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.ChangedOn)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Identifier).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Remarks).HasMaxLength(500);
         });
 
         modelBuilder.Entity<IojurisdictionAssign>(entity =>
