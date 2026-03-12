@@ -20,4 +20,12 @@
         public int? status{ get; set; }
         public int? totalCount { get; set; }
     }
+
+    public class AdminUpdateDTO
+    {
+        public string? identifier { get; set; }
+        public string? name { get; set; }
+        public string? status { get; set; }
+        public int? adminType { get; set; }
+    }
 }

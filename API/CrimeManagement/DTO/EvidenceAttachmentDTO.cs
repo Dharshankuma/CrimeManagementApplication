@@ -18,4 +18,20 @@
 
         public DateTime? ModifyOn { get; set; }
     }
+
+
+    public class EvidenceDownloadDTO
+    {
+        public string? fileName { get; set; }
+        public string? contentType { get; set; }
+        public string? base64Content { get; set; }
+    }
+
+
+    public class EvidenceGridData
+    {
+        public string? identifier { get; set; }
+        public string? evidenceName { get; set; }
+        public string? createdDate { get; set; }
+    }
 }

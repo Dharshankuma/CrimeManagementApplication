@@ -7,6 +7,9 @@ namespace CrimeManagement.Services
     public interface IAdminService
     {
         Task<AdminGridResponse> DoGetMasterDetails(AdminDTO objdto);
+        Task DoUpdateMasterDetails(AdminUpdateDTO objdto);
+        Task DoDeleteMasterDetails(AdminUpdateDTO objdto);
+
     }
     public class AdminService : IAdminService
     {
@@ -84,6 +87,105 @@ namespace CrimeManagement.Services
                 throw ex;
             }
             catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task DoUpdateMasterDetails(AdminUpdateDTO objdto)
+        {
+            try
+            {
+                int.Parse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value ?? "0");
+
+                var roleId = await _db.UserMasters.Where(x => x.UserId == 1).Select(x => x.RoleId).FirstOrDefaultAsync();
+
+                if (roleId != 1)
+                    throw new CustomException("Not authorized to use the page");
+
+                
+
+                switch (objdto.adminType)
+                {
+                    case 1:
+                        var crimeType = await _db.CrimeTypes.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (crimeType == null)
+                            throw new CustomException("Record not found");
+                        crimeType.CrimeName = objdto.name ?? crimeType.CrimeName;
+                        
+                        break;
+                    case 2:
+                        var status = await _db.Statusmasters.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (status == null)
+                            throw new CustomException("Record not found");
+                        status.Status = objdto.name ?? status.Status;
+                        break;
+                    case 3:
+                        var jurs = await _db.JurisdictionMasters.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (jurs == null)
+                            throw new CustomException("Record not found");
+                        jurs.JurisdictionName = objdto.name ?? jurs.JurisdictionName;
+                        break;
+                    default:
+                        throw new CustomException("Invalid admin type");
+                }
+
+                await _db.SaveChangesAsync();
+            }
+            catch(CustomException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+        public async Task DoDeleteMasterDetails(AdminUpdateDTO objdto)
+        {
+            try
+            {
+                int.Parse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value ?? "0");
+
+                var roleId = await _db.UserMasters.Where(x => x.UserId == 1).Select(x => x.RoleId).FirstOrDefaultAsync();
+
+                if(roleId!= 1)
+                    throw new CustomException("Not authorized to use the page");
+
+                switch (objdto.adminType)
+                {
+                    case 1:
+                        var crimeType = await _db.CrimeTypes.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (crimeType == null)
+                            throw new CustomException("Record not found");
+                        crimeType.IsActive = false;
+                        break;
+                    case 2:
+                        var status = await _db.Statusmasters.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (status == null)
+                            throw new CustomException("Record not found");
+                        status.IsActive = false;
+                        break;
+                    case 3:
+                        var jurs = await _db.JurisdictionMasters.Where(x => x.Identifier == objdto.identifier).FirstOrDefaultAsync();
+                        if (jurs == null)
+                            throw new CustomException("Record not found");
+                        jurs.IsActive = false;
+                        break;
+
+                    default: 
+                        throw new CustomException("Invalid admin type");    
+                }
+
+                await _db.SaveChangesAsync();
+            }
+            catch (CustomException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
             {
                 throw ex;
             }

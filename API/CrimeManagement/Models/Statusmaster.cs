@@ -18,4 +18,6 @@ public partial class Statusmaster
     public int? Modifyby { get; set; }
 
     public DateTime? Modifyon { get; set; }
+
+    public bool IsActive { get; set; }
 }

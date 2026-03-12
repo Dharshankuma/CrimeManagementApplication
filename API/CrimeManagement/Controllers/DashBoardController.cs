@@ -9,7 +9,6 @@ using static CrimeManagement.DTO.CrimeResponseDTO;
 namespace CrimeManagement.Controllers
 {
 
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     

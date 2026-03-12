@@ -18,4 +18,6 @@ public partial class CrimeType
     public int? ModifyBy { get; set; }
 
     public DateTime? ModifyOn { get; set; }
+
+    public bool IsActive { get; set; }
 }

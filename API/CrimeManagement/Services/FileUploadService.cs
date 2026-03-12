@@ -11,6 +11,7 @@ namespace CrimeManagement.Services
     public interface IFileUploadService
     {
         Task<bool> DoUploadEvidenceFiles(EvidenceUploadRequestDTO request);
+        Task<EvidenceDownloadDTO> DoDownloadEvidenceFile(string identifier);
     }
     public class FileUploadService : IFileUploadService
     {
@@ -119,6 +120,52 @@ namespace CrimeManagement.Services
 
         }
 
+        public async Task<EvidenceDownloadDTO> DoDownloadEvidenceFile(string identifier)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(identifier))
+                    throw new CustomException("Identifer is required");
+
+                var fileData = await _db.EvidenceAttachments.Where(x=> x.Identifier == identifier)
+                    .FirstOrDefaultAsync().ConfigureAwait(false);
+
+                if (fileData == null)
+                    throw new CustomException("No file found for the provided identifier");
+
+                var filePath = Path.Combine(_env.ContentRootPath, fileData.EvidenceAttachmentPath ?? string.Empty);
+                if (!File.Exists(filePath))
+                    throw new CustomException("File not found on the server");
+
+                var base64Content = await File.ReadAllBytesAsync(filePath).ConfigureAwait(false);
+                var ext = Path.GetExtension(filePath).ToLower();
+                string contentType = ext switch
+                {
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".pdf" => "application/pdf",
+                    _ => "application/octet-stream"
+                };
+
+
+                return new EvidenceDownloadDTO
+                {
+                    fileName = fileData.Filename,
+                    contentType = contentType,
+                    base64Content= Convert.ToBase64String(base64Content)
+                };
+
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+        }
 
         private static async Task<bool> HasValidFileSignatureAsync(IFormFile file, CancellationToken cancellationToken)
         {

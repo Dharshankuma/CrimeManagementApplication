@@ -20,4 +20,6 @@ public partial class EvidenceAttachmentBackup
     public int? ModifyBy { get; set; }
 
     public DateTime? ModifyOn { get; set; }
+
+    public string? Filename { get; set; }
 }

@@ -200,6 +200,7 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)
                 .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.ModifyOn).HasColumnType("datetime");
         });
 
@@ -243,6 +244,10 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.EvidenceAttachmentPath)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.Filename)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("filename");
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)
                 .IsUnicode(false);
@@ -259,6 +264,10 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.EvidenceAttachmentPath)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.Filename)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("filename");
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)
                 .IsUnicode(false);
@@ -276,6 +285,7 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)
                 .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.ModifyOn).HasColumnType("datetime");
         });
 
@@ -357,6 +367,7 @@ public partial class CrimeDbContext : DbContext
             entity.Property(e => e.Identifier)
                 .HasMaxLength(36)
                 .IsUnicode(false);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.JurisdictionName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -456,6 +467,7 @@ public partial class CrimeDbContext : DbContext
                 .HasMaxLength(36)
                 .IsUnicode(false)
                 .HasColumnName("identifier");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Modifyby).HasColumnName("modifyby");
             entity.Property(e => e.Modifyon)
                 .HasColumnType("datetime")
