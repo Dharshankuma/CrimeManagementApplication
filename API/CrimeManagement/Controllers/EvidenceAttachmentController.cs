@@ -48,7 +48,7 @@ namespace CrimeManagement.Controllers
         }
 
         [HttpPost]
-        [Route("DoDownloadEvidence/${identifier}")]
+        [Route("DoDownloadEvidence/{identifier}")]
         public async Task<IActionResult> DoDownloadEvidenceFile(string identifier)
         {
             try

@@ -81,6 +81,7 @@ namespace CrimeManagement.DTO
         public string? Location { get; set; }
         public int? statusId { get; set; }
         public string? complaintIdentifier { get; set; }
+        public string? ioOfficerName { get; set; }
     }
 
     public class InvestigationRequestviewDTO
@@ -88,7 +89,15 @@ namespace CrimeManagement.DTO
         public string? columnName { get; set; }
         public bool? sortOrder { get; set; }
         public string? userIdentifier { get; set; }
+        public string? search { get; set; }
         public int PageNumber { get; set; }
         public int PageSize { get; set; }  
     }
+
+    public class CaseNoteDTO
+    {
+        public string? crimeIdentifier { get; set; }
+        public string? commentText { get; set; }
+    }
+
 }

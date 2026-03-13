@@ -111,25 +111,31 @@ namespace CrimeManagement.Helper
         {
             return DateTime.Now;
         }
-        
+
         public static string DoGetRelativeDateTime(DateTime? date)
         {
             var timespan = DateTime.Now - date;
 
             if (timespan.Value.TotalSeconds < 60)
-                return $"{timespan.Value.TotalSeconds} seconds ago";
-            if (timespan.Value.TotalMinutes < 60)
-                return $"{timespan.Value.TotalMinutes} minutes ago";
-            if (timespan.Value.TotalHours < 24)
-                return $"{timespan.Value.TotalHours} hours ago";
-            if (timespan.Value.TotalDays < 7)
-                return $"{timespan.Value.TotalDays} days ago";
-            if (timespan.Value.TotalDays < 30)
-                return $"{timespan.Value.TotalDays / 7} weeks ago";
-            if (timespan.Value.TotalDays < 365)
-                return $"{timespan.Value.TotalDays / 30} months ago";
+                return $"{(int)timespan.Value.TotalSeconds} seconds ago";
 
-            return $"{timespan.Value.TotalDays / 365} years ago";
+            if (timespan.Value.TotalMinutes < 60)
+                return $"{(int)timespan.Value.TotalMinutes} minutes ago";
+
+            if (timespan.Value.TotalHours < 24)
+                return $"{(int)timespan.Value.TotalHours} hours ago";
+
+            if (timespan.Value.TotalDays < 7)
+                return $"{(int)timespan.Value.TotalDays} days ago";
+
+            if (timespan.Value.TotalDays < 30)
+                return $"{(int)(timespan.Value.TotalDays / 7)} weeks ago";
+
+            if (timespan.Value.TotalDays < 365)
+                return $"{(int)(timespan.Value.TotalDays / 30)} months ago";
+
+            return $"{(int)(timespan.Value.TotalDays / 365)} years ago";
         }
+
     }
 }

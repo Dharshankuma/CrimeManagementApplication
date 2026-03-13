@@ -38,9 +38,11 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className={`nav-link ${isActive('/dashboard')}`} to="/dashboard">Dashboard</Link>
             </li>
-            <li className="nav-item">
-              <Link className={`nav-link ${isActive('/complaints')}`} to="/complaints">Complaints</Link>
-            </li>
+            {user?.role !== UserRole.OFFICER && (
+              <li className="nav-item">
+                <Link className={`nav-link ${isActive('/complaints')}`} to="/complaints">Complaints</Link>
+              </li>
+            )}
             {user?.role !== UserRole.PUBLIC && (
               <li className="nav-item">
                 <Link className={`nav-link ${isActive('/investigations')}`} to="/investigations">Investigations</Link>

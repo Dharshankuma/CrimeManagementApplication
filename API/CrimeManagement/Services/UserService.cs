@@ -1,5 +1,6 @@
 ﻿using CrimeManagement.Context;
 using CrimeManagement.DTO;
+using CrimeManagement.Helper;
 using CrimeManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using static CrimeManagement.DTO.CrimeResponseDTO;
@@ -18,12 +19,14 @@ namespace CrimeManagement.Services
         private readonly CrimeDbContext _db;
         private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _environment;
         private readonly IConfiguration _config;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(CrimeDbContext db,Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment,IConfiguration config)
+        public UserService(CrimeDbContext db,Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment,IConfiguration config,IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _environment = environment;
             _config = config;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<UserLoginDetails> DoGetLoginUserDetails(string userName)
         {
@@ -69,47 +72,71 @@ namespace CrimeManagement.Services
         {
             try
             {
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
+
                 var userDetails = await _db.UserMasters
                     .FirstOrDefaultAsync(x => x.Identifier == objdto.identifier);
 
                 if (userDetails == null)
                     throw new CustomException("User details not found.");
 
-                var jurisdictionTask = _db.JurisdictionMasters
+                var jurisdictionTask =await  _db.JurisdictionMasters
                     .Where(x => x.Identifier == objdto.jurisdictionIdentifier)
                     .Select(x => (int?)x.JurisdictionId)
                     .FirstOrDefaultAsync();
 
-                var designationTask = _db.DesignationMasters
-                    .Where(x => x.Identifier == objdto.designationIdentifier)
-                    .Select(x => (int?)x.DesignationId)
+                var designationTask = await _db.Roles
+                    .Where(x => x.Identifier == objdto.roleIdentifier)
+                    .Select(x => (int?)x.RoleId)
                     .FirstOrDefaultAsync();
 
-                await Task.WhenAll(jurisdictionTask, designationTask);
+                //await Task.WhenAll(jurisdictionTask, designationTask);
 
-                if (jurisdictionTask.Result == null)
+                if (jurisdictionTask == 0)
                     throw new CustomException("Jurisdiction not found.");
-                if (designationTask.Result == null)
+                if (designationTask == 0)
                     throw new CustomException("Designation not found.");
 
-                userDetails.Firstname = objdto.firstName;
-                userDetails.Lastname = objdto.lastName;
-                userDetails.MiddleName = objdto.middleName;
-                userDetails.Address = objdto.address;
-                userDetails.PhoneNo = objdto.phoneNo;
-                userDetails.EmailId = objdto.emailId;
-                userDetails.Gender = objdto.gender;
-                userDetails.Aadhaar = objdto.aadhaar;
-                userDetails.Dob = objdto.dob;
-                userDetails.UserName = objdto.userName;
+                //userDetails.Firstname = objdto.firstName;
+                //userDetails.Lastname = objdto.lastName;
+                //userDetails.MiddleName = objdto.middleName;
+                //userDetails.Address = objdto.address;
+                //userDetails.PhoneNo = objdto.phoneNo;
+                //userDetails.EmailId = objdto.emailId;
+                //userDetails.Gender = objdto.gender;
+                //userDetails.Aadhaar = objdto.aadhaar;
+                //userDetails.Dob = objdto.dob;
+                //userDetails.UserName = objdto.userName;
                 userDetails.ModifyBy = userDetails.UserId;
                 userDetails.ModifyOn = DateTime.Now;
-                userDetails.Jurisdiction = jurisdictionTask.Result.Value;
-                userDetails.DesignationId = designationTask.Result.Value;
-                userDetails.Pan = objdto.pan;
-                userDetails.EmergencyContact = objdto.emergencyContact;
+                userDetails.Jurisdiction = jurisdictionTask;
+                userDetails.RoleId = designationTask;
+                //userDetails.Pan = objdto.pan;
+                //userDetails.EmergencyContact = objdto.emergencyContact;
 
-                await _db.SaveChangesAsync();
+
+                var jurisdictiondetails = await _db.IojurisdictionAssigns.Where(x => x.UserId == userDetails.UserId).FirstOrDefaultAsync();
+
+                if(jurisdictiondetails == null)
+                {
+                    var jurisdictionData = new IojurisdictionAssign
+                    {
+                        Identifier = CustomHelper.DoGenerateGuid(),
+                        UserId = userDetails.UserId,
+                        JurisdictionId = jurisdictionTask,
+                        CreatedBy = userId,
+                        CreatedOn = CustomHelper.DoGetDateTime()
+                    };
+
+                    await _db.AddAsync(jurisdictionData);
+
+                }
+                else
+                {
+                    jurisdictiondetails.JurisdictionId = jurisdictionTask;
+                }
+
+                    await _db.SaveChangesAsync();
             }
             catch (CustomException) // rethrow known errors untouched
             {

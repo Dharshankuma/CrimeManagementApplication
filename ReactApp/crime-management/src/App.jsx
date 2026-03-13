@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ConfigurationProvider } from './context/ConfigurationContext';
 import { LoaderProvider } from './context/LoaderContext';
 import Loader from './components/Loader';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/login/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ComplaintListPage from './pages/complaints/ComplaintListPage';
 import ComplaintCreatePage from './pages/complaints/ComplaintCreatePage';
@@ -13,7 +13,7 @@ import InvestigationListPage from './pages/investigation/InvestigationListPage';
 import InvestigationDetailsPage from './pages/investigation/InvestigationDetailsPage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
-import ForgotPassword from './pages/ForgotPassword';
+import ForgotPassword from './pages/login/ForgotPassword';
 import Navbar from './components/Navbar';
 import './styles/Global.css';
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, UserRole } from '../context/AuthContext';
-import AuthService from '../services/AuthService';
-import '../styles/LoginPage.css';
+import { useAuth, UserRole } from '../../context/AuthContext';
+import AuthService from '../../services/AuthService';
+import '../../styles/LoginPage.css';
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -106,10 +106,9 @@ const LoginPage = () => {
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (registerForm.fullName && registerForm.email && registerForm.password) {
+    if (registerForm.email && registerForm.password) {
       setIsLoading(true);
       const response = await AuthService.PostServiceCall("Login/RegisterUser", {
-        userName: registerForm.fullName,
         emailId: registerForm.email,
         password: registerForm.password
       });
@@ -190,7 +189,7 @@ const LoginPage = () => {
                     onChange={(e) => setLoginForm({ ...loginForm, identifier: e.target.value })}
                     required
                   />
-                  <label htmlFor="loginIdentifier">Username or Email</label>
+                  <label htmlFor="loginIdentifier">Email</label>
                 </div>
 
                 <div className="form-floating mb-1">
@@ -239,7 +238,7 @@ const LoginPage = () => {
           {activeTab === 'register' && (
             <div className="tab-pane fade show active">
               <form onSubmit={handleRegisterSubmit}>
-                <div className="form-floating mb-2">
+                {/* <div className="form-floating mb-2">
                   <input
                     type="text"
                     className="form-control"
@@ -250,7 +249,7 @@ const LoginPage = () => {
                     required
                   />
                   <label htmlFor="registerName">Full Name</label>
-                </div>
+                </div> */}
 
                 <div className="form-floating mb-2">
                   <input

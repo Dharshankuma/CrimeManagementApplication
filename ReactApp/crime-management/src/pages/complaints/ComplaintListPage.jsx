@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useConfiguration } from '../../context/ConfigurationContext';
 import { useLoader } from '../../context/LoaderContext';
 import AuthService from '../../services/AuthService';
+import Pagination from '../../components/Pagination';
 
 const ComplaintListPage = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const ComplaintListPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [crimeTypeFilter, setCrimeTypeFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10;
 
   const fetchComplaints = useCallback(async () => {
@@ -49,16 +51,21 @@ const ComplaintListPage = () => {
         // Depending on API wrapping behavior, the result could be directly inside data or data.data etc.
         // Handle standard REST payload wraps
         let responseData = response.data?.data || response.data || response || [];
+        let fetchedTotal = response.data?.totalCount ?? response.totalCount ?? 0;
 
         if (Array.isArray(responseData)) {
           setComplaints(responseData);
+          setTotalCount(fetchedTotal > 0 ? fetchedTotal : responseData.length);
         } else if (responseData && Array.isArray(responseData.items)) {
           setComplaints(responseData.items);
+          setTotalCount(fetchedTotal > 0 ? fetchedTotal : (responseData.totalCount || responseData.items.length));
         } else {
           setComplaints([]);
+          setTotalCount(0);
         }
       } else {
         setComplaints([]);
+        setTotalCount(0);
         console.error("Failed to fetch complaints:", response?.message);
       }
     } catch (error) {
@@ -105,7 +112,7 @@ const ComplaintListPage = () => {
           </button>
 
           {/* Crime Type Dropdown Filter */}
-          <select
+          {/* <select
             className="form-select"
             style={{ maxWidth: '180px' }}
             value={crimeTypeFilter}
@@ -120,7 +127,7 @@ const ComplaintListPage = () => {
                 {ct.name}
               </option>
             ))}
-          </select>
+          </select> */}
 
           {/* Search Input */}
           <div className="input-group" style={{ maxWidth: '250px' }}>
@@ -170,7 +177,11 @@ const ComplaintListPage = () => {
                     <tr key={complaint.reportIdentifer || complaint.reportId}>
                       <td className="ps-4">
                         <div className="fw-bold">{complaint.complaintName || "Unknown"}</div>
-                        <div className="text-muted small">ID: {complaint.reportId || "N/A"}</div>
+                        <div className="extra-small text-muted mt-1">
+                          <code className="bg-light px-2 py-1 rounded text-dark border">
+                            CMP-{complaint.reportIdentifer ? complaint.reportIdentifer.substring(0, 8) : 'N/A'}
+                          </code>
+                        </div>
                       </td>
                       <td>{complaint.jurisdictionName || "-"}</td>
                       <td>{complaint.crimeType || "-"}</td>
@@ -179,13 +190,13 @@ const ComplaintListPage = () => {
                       </td>
                       <td>{complaint.ioOfficerName || "Unassigned"}</td>
                       <td>
-                        <div>{complaint.crimeReportDate ? new Date(complaint.crimeReportDate).toLocaleDateString() : "-"}</div>
-                        <div className="text-muted small">Updated: {complaint.lastUpdated ? new Date(complaint.lastUpdated).toLocaleDateString() : "-"}</div>
+                        <div>{complaint.crimeReportDate ? (complaint.crimeReportDate) : "-"}</div>
+                        <div className="text-muted small">Updated: {complaint.lastUpdated ? complaint.lastUpdated : "-"}</div>
                       </td>
                       <td className="pe-4 text-end">
                         <button
                           className="btn btn-sm btn-outline-primary"
-                          onClick={() => navigate(`/investigation-details/${complaint.reportIdentifer}`)}
+                          onClick={() => navigate(`/investigations/${complaint.reportIdentifer}`)}
                         >
                           View Details
                         </button>
@@ -203,33 +214,12 @@ const ComplaintListPage = () => {
             </table>
           </div>
         </div>
-        <div className="card-footer bg-white border-0 py-3">
-          <nav>
-            <ul className="pagination pagination-sm justify-content-center mb-0">
-              <li className={`page-item ${currentPage <= 1 ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage <= 1}
-                >
-                  Previous
-                </button>
-              </li>
-              <li className="page-item active">
-                <span className="page-link">{currentPage}</span>
-              </li>
-              <li className={`page-item ${complaints.length < pageSize ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  disabled={complaints.length < pageSize}
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalCount={totalCount > 0 ? totalCount : (currentPage * pageSize + (complaints.length === pageSize ? 1 : 0))}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

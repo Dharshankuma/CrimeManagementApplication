@@ -20,7 +20,6 @@ body {
 }
 
 .admin-container {
-  padding-top: 2rem;
   padding-bottom: 4rem;
   width: 100%;
 }
@@ -126,9 +125,9 @@ body {
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
   margin-bottom: 2rem;
   width: 100%;
+  overflow: hidden;
 }
 
 .cms-card-header {
@@ -149,6 +148,8 @@ body {
   width: 100%;
   border: none;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 300px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -172,6 +173,10 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 2px solid #F1F5F9;
+  position: sticky;
+  top: 0;
+  background-color: #F8FAFC;
+  z-index: 10;
 }
 
 .cms-table td {

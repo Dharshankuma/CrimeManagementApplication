@@ -5,7 +5,7 @@ const StatusBadge = ({ status }) => {
     switch (status) {
       case 'New': return 'bg-info text-dark';
       case 'Open': return 'bg-primary';
-      case 'Investigation': return 'bg-warning text-dark';
+      case 'Under Investigation': return 'bg-warning text-dark';
       case 'Resolved': return 'bg-success';
       case 'Closed': return 'bg-secondary';
       case 'Closed - No Action': return 'bg-danger';

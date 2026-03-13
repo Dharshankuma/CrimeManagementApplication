@@ -21,7 +21,8 @@ export const ConfigurationProvider = ({ children }) => {
         stateMaster: [],
         jurisdictionMaster: [],
         crimeTypes: [],
-        statusMaster: []
+        statusMaster: [],
+        roleMaster: []
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

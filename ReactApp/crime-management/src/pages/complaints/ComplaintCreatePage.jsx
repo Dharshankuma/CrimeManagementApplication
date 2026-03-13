@@ -12,14 +12,14 @@ const ComplaintCreatePage = () => {
 
     // Form states
     const [complaintName, setComplaintName] = useState('');
-    const [jurisdiction, setJurisdiction] = useState('');
-    const [crimeType, setCrimeType] = useState('');
+    const [jurisdictionIdentifier, setJurisdiction] = useState('');
+    const [crimeTypeIdentifier, setCrimeType] = useState('');
     const [victimName, setVictimName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [crimeDescription, setCrimeDescription] = useState('');
     const [investigationDescription, setInvestigationDescription] = useState('');
     const [priorityLevel, setPriorityLevel] = useState('Low');
-    const [reportDate, setReportDate] = useState('');
+    const [dateReportString, setReportDate] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
@@ -29,21 +29,27 @@ const ComplaintCreatePage = () => {
         e.preventDefault();
         setMessage({ text: '', type: '' });
 
+        const formatDateForApi = (dateStr) => {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                // Input date is YYYY-MM-DD, API expects DD-MM-YYYY
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        };
+
         try {
             setLoading(true);
 
             const payload = {
                 complaintName,
-                jurisdiction,
-                crimeType,
-                victimName,
+                jurisdictionIdentifier,
+                crimeTypeIdentifier,
                 phoneNumber,
                 crimeDescription,
-                investigationDescription,
-                priorityLevel,
-                reportDate,
-                startDate,
-                endDate: endDate || null // Handle optional end date properly depending on API expectations
+                dateReportString: formatDateForApi(dateReportString),
+
             };
 
             const result = await AuthService.PostServiceCallToken('CrimeReport/RaiseCrimeReport', payload);
@@ -116,7 +122,7 @@ const ComplaintCreatePage = () => {
                         <label style={labelStyle}>Jurisdiction</label>
                         <select
                             style={inputStyle}
-                            value={jurisdiction}
+                            value={jurisdictionIdentifier}
                             onChange={(e) => setJurisdiction(e.target.value)}
                             required
                         >
@@ -131,7 +137,7 @@ const ComplaintCreatePage = () => {
                         <label style={labelStyle}>Crime Type</label>
                         <select
                             style={inputStyle}
-                            value={crimeType}
+                            value={crimeTypeIdentifier}
                             onChange={(e) => setCrimeType(e.target.value)}
                             required
                         >
@@ -143,7 +149,7 @@ const ComplaintCreatePage = () => {
                             ))}
                         </select>
 
-                        <label style={labelStyle}>Victim Name</label>
+                        {/* <label style={labelStyle}>Victim Name</label>
                         <input
                             type="text"
                             style={inputStyle}
@@ -151,7 +157,7 @@ const ComplaintCreatePage = () => {
                             onChange={(e) => setVictimName(e.target.value)}
                             required
                             placeholder="Enter victim's full name"
-                        />
+                        /> */}
 
                         <label style={labelStyle}>Phone Number</label>
                         <input
@@ -163,7 +169,7 @@ const ComplaintCreatePage = () => {
                             placeholder="Enter 10-digit number"
                         />
 
-                        <label style={labelStyle}>Priority Level</label>
+                        {/* <label style={labelStyle}>Priority Level</label>
                         <select
                             style={inputStyle}
                             value={priorityLevel}
@@ -173,7 +179,7 @@ const ComplaintCreatePage = () => {
                             <option value="Low">Low</option>
                             <option value="Medium">Medium</option>
                             <option value="High">High</option>
-                        </select>
+                        </select> */}
                     </div>
 
                     {/* Right Column */}
@@ -182,12 +188,12 @@ const ComplaintCreatePage = () => {
                         <input
                             type="date"
                             style={inputStyle}
-                            value={reportDate}
+                            value={dateReportString}
                             onChange={(e) => setReportDate(e.target.value)}
                             required
                         />
 
-                        <label style={labelStyle}>Start Date</label>
+                        {/* <label style={labelStyle}>Start Date</label>
                         <input
                             type="date"
                             style={inputStyle}
@@ -202,7 +208,7 @@ const ComplaintCreatePage = () => {
                             style={inputStyle}
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                        />
+                        /> */}
 
                         <label style={labelStyle}>Crime Description</label>
                         <textarea
@@ -213,13 +219,13 @@ const ComplaintCreatePage = () => {
                             placeholder="Detailed description of the crime..."
                         ></textarea>
 
-                        <label style={labelStyle}>Investigation Description</label>
+                        {/* <label style={labelStyle}>Investigation Description</label>
                         <textarea
                             style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
                             value={investigationDescription}
                             onChange={(e) => setInvestigationDescription(e.target.value)}
                             placeholder="Initial investigation observations..."
-                        ></textarea>
+                        ></textarea> */}
                     </div>
                 </div>
 

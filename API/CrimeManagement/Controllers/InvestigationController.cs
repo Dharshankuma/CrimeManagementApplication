@@ -94,5 +94,30 @@ namespace CrimeManagement.Controllers
                 return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure, responseDatetime = DateTime.Now, responseCode = 500, responseMessage = ex.Message });
             }
         }
+
+        [HttpPost]
+        [Route("AddComment")]
+        public async Task<IActionResult> AddComment([FromBody] CaseNoteDTO objdto)
+        {
+            try
+            {
+                if (objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure, responseDatetime = DateTime.Now, responseCode = 500, responseMessage = "Invalid Request" });
+                }
+
+                await _service.DoAddCaseComment(objdto);
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseStatus = Helper.CustomHelper._success, responseMessage = "Updated Successfully" });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure, responseDatetime = DateTime.Now, responseCode = 500, responseMessage = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure, responseDatetime = DateTime.Now, responseCode = 500, responseMessage = ex.Message });
+            }
+        }
+
     }
 }

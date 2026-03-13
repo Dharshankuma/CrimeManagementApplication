@@ -4,6 +4,7 @@ import StatusBadge from '../../components/StatusBadge';
 import AuthService from '../../services/AuthService';
 import { useAuth } from '../../context/AuthContext';
 import { useLoader } from '../../context/LoaderContext';
+import Pagination from '../../components/Pagination';
 
 const InvestigationListPage = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const InvestigationListPage = () => {
   const [investigations, setInvestigations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10;
 
   const fetchInvestigations = useCallback(async () => {
@@ -30,18 +32,26 @@ const InvestigationListPage = () => {
       const apiCall = AuthService.PostServiceCallToken;
       const response = await apiCall("Investigation/InvestigationGridDetails", payload);
 
-      if (response && response.success && response.data) {
-        setInvestigations(response.data);
+      console.log(response);
+      let fetchedTotal = response?.totalCount || (response?.data && response.data.totalCount) || 0;
+      console.log(response.data);
+      if (response && response.data && response.data.data) {
+        setInvestigations(response.data.data);
+        setTotalCount(fetchedTotal > 0 ? fetchedTotal : response.data.data.length);
       } else if (Array.isArray(response)) {
         setInvestigations(response);
+        setTotalCount(fetchedTotal > 0 ? fetchedTotal : response.length);
       } else if (response && Array.isArray(response.data)) {
         setInvestigations(response.data);
+        setTotalCount(fetchedTotal > 0 ? fetchedTotal : response.data.length);
       } else {
         setInvestigations([]);
+        setTotalCount(0);
       }
     } catch (error) {
       console.error("Error fetching investigations:", error);
       setInvestigations([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -118,9 +128,8 @@ const InvestigationListPage = () => {
             <thead className="bg-light">
               <tr>
                 <th className="ps-4 py-3">Investigation ID</th>
-                <th>Priority</th>
+                <th>Status</th>
                 <th>Assigned Officer</th>
-                <th>Progress</th>
                 <th>Last Update</th>
                 <th className="pe-4 text-end">Action</th>
               </tr>
@@ -133,27 +142,24 @@ const InvestigationListPage = () => {
                 return (
                   <tr key={inv.investigationIdentifer || idx}>
                     <td className="ps-4">
-                      <div className="fw-bold">{inv.investigationId}</div>
-                      <div className="small text-muted">{inv.complaintName}</div>
-                    </td>
-                    <td>
-                      <span className={`badge ${priorityData.className}`}>
-                        {priorityData.text}
-                      </span>
-                    </td>
-                    <td>{inv.ioOfficerName || 'Unassigned'}</td>
-                    <td style={{ width: '150px' }}>
-                      <div className="progress" style={{ height: '6px' }}>
-                        <div className="progress-bar" style={{ width: `${progressWidth}%` }}></div>
+                      <div className="fw-bold">{inv.complaintName}</div>
+                      <div className="extra-small text-muted mt-1">
+                        <code className="bg-light px-2 py-1 rounded text-dark border">
+                          CASE-{inv.complaintIdentifier ? inv.complaintIdentifier.substring(0, 8) : 'N/A'}
+                        </code>
                       </div>
                     </td>
-                    <td>{formatDate(inv.lastUpdatedDate)}</td>
+                    <td>
+                      <StatusBadge status={inv.crimeStatus} />
+                    </td>
+                    <td>{inv.ioOfficerName || 'Unassigned'}</td>
+                    <td>{inv.lastUpdatedDate}</td>
                     <td className="pe-4 text-end">
                       <button
                         className="btn btn-sm btn-primary"
-                        onClick={() => navigate(`/investigations/${inv.investigationIdentifer}`)}
+                        onClick={() => navigate(`/investigations/${inv.complaintIdentifier}`)}
                       >
-                        Update Case
+                        View Case
                       </button>
                     </td>
                   </tr>
@@ -172,33 +178,12 @@ const InvestigationListPage = () => {
         </div>
 
         {/* Pagination Controls */}
-        <div className="card-footer bg-white border-top border-light py-3">
-          <nav>
-            <ul className="pagination pagination-sm justify-content-center mb-0">
-              <li className={`page-item ${currentPage <= 1 ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage <= 1}
-                >
-                  Previous
-                </button>
-              </li>
-              <li className="page-item active">
-                <span className="page-link">{currentPage}</span>
-              </li>
-              <li className={`page-item ${investigations.length < pageSize ? 'disabled' : ''}`}>
-                <button
-                  className="page-link"
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  disabled={investigations.length < pageSize}
-                >
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalCount={totalCount > 0 ? totalCount : (currentPage * pageSize + (investigations.length === pageSize ? 1 : 0))}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

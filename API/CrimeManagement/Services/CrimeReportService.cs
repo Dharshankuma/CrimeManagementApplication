@@ -21,12 +21,13 @@ namespace CrimeManagement.Services
         private readonly IConfiguration _config;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEvidenceService _evidenceService;
-        public CrimeReportService(CrimeDbContext db, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+        public CrimeReportService(CrimeDbContext db, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment, IConfiguration config, IHttpContextAccessor httpContextAccessor,IEvidenceService evidenceService)
         {
             _db = db;
             _environment = environment;
             _config = config;
             _httpContextAccessor = httpContextAccessor;
+            _evidenceService = evidenceService;
         }
 
         public async Task<Data<List<CrimeReportViewDTO>>> DoGetCrimeReportDetails(CrimeRequestviewDTO objdto)
@@ -56,7 +57,7 @@ namespace CrimeManagement.Services
                 }
 
                 var query = from crime in baseComplaints
-                            join userdata in _db.UserMasters.AsNoTracking() on crime.CreatedBy equals userdata.UserId into usertemp
+                            join userdata in _db.UserMasters.AsNoTracking() on crime.IoofficerId equals userdata.UserId into usertemp
                             from user in usertemp.DefaultIfEmpty()
                             join jurisdictiondata in _db.JurisdictionMasters.AsNoTracking() on crime.JurisdictionId equals jurisdictiondata.JurisdictionId into jurisdictiontemp
                             from jurisdiction in jurisdictiontemp.DefaultIfEmpty()
@@ -74,7 +75,9 @@ namespace CrimeManagement.Services
                                 crimeStatusStr = sts.Status,
                                 crimeReportDate = crime.DateReported.HasValue
                                                  ? crime.DateReported.Value.ToString("dd-MM-yyyy")
-                                                 : string.Empty
+                                                 : string.Empty,
+                                ioOfficerName = user.Firstname + " " + user.Lastname,
+                                
                             };
 
                 var totalCount = await query.CountAsync();
@@ -128,7 +131,7 @@ namespace CrimeManagement.Services
 
                 
                 var pagedResult = await query
-                    .Skip(pageNumber * pageSize)   // 0 → first page, 1 → second page, etc.
+                    .Skip((pageNumber-1) * pageSize)   // 0 → first page, 1 → second page, etc.
                     .Take(pageSize)
                     .ToListAsync();
 
@@ -154,10 +157,7 @@ namespace CrimeManagement.Services
             try
             {
                 // Validate user
-                var userId = await _db.UserMasters
-                    .Where(u => u.Identifier == objdto.userIdentifier)
-                    .Select(u => u.UserId)
-                    .FirstOrDefaultAsync();
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
 
                 if (userId == 0)
                     throw new CustomException("User does not exist");
@@ -280,6 +280,7 @@ namespace CrimeManagement.Services
                         priority = investigation?.priority == null ? "" : investigation?.priority,
                         startDate = investigation?.startDate == null ? "" : investigation?.startDate,
                         investigationDescription = investigation?.investigationDescription == null ? "" : investigation?.investigationDescription,
+                        identifier = investigation?.identifier
                     },
                     isDisable = isDisable
                 };
@@ -287,7 +288,7 @@ namespace CrimeManagement.Services
 
                 if(investigation?.ioOfficerId != null)
                 {
-                    var officer = await _db.UserMasters.Where(u => u.UserId == investigation.ioOfficerId).Select(u => u.UserName).FirstOrDefaultAsync();
+                    var officer = await _db.UserMasters.Where(u => u.UserId == investigation.ioOfficerId).Select(u => u.Firstname + " " + u.Lastname).FirstOrDefaultAsync();
 
                     if (!string.IsNullOrWhiteSpace(officer))
                     {
@@ -301,7 +302,8 @@ namespace CrimeManagement.Services
                                                       e.EvidenceAttachmentPath,
                                                       e.Identifier,
                                                       e.CreatedOn,
-                                                      e.EvidenceAttachmentId
+                                                      e.EvidenceAttachmentId,
+                                                      e.Filename
                                                   }).ToListAsync();
 
 

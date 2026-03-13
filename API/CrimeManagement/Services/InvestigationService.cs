@@ -11,6 +11,8 @@ namespace CrimeManagement.Services
     {
         Task<Data<List<InvestigationViewDTO>>> DoGetInvestigationOverviewDetails(InvestigationRequestviewDTO objdto);
         Task<InvestigationDTO> DoGetInvestigationDetailsById(string identifier);
+        Task DoAddCaseComment(CaseNoteDTO objdto);
+
 
         Task DoUpdateInvestigation(InvestigationDTO objdto);
     }
@@ -41,6 +43,11 @@ namespace CrimeManagement.Services
                                 .FirstOrDefaultAsync();
 
                 var query = from inv in _db.Investigations.AsNoTracking()
+
+                            join userdata in _db.UserMasters.AsNoTracking() 
+                               on inv.IoOfficerId equals userdata.UserId into userdatatemp
+                            from user in userdatatemp.DefaultIfEmpty()
+
                             join cmp in _db.ComplaintRequests.AsNoTracking()
                                 on inv.ComplaintId equals cmp.ComplaintRequestId into cmpTemp
                             from cmp in cmpTemp.DefaultIfEmpty()
@@ -68,7 +75,8 @@ namespace CrimeManagement.Services
                                 LastUpdatedDate = inv.ModifyOn ?? inv.CreatedOn,
                                 Location = jurisdiction.JurisdictionName,
                                 ComplaintIdentifier = cmp.Identifier,
-                                inv.IoOfficerId
+                                inv.IoOfficerId,
+                                ioOfficerName = user.Firstname + " " + user.Lastname
                             };
 
                 // Filter for IO officer
@@ -95,6 +103,19 @@ namespace CrimeManagement.Services
                 {
                     query = query.OrderByDescending(x => x.LastUpdatedDate);
                 }
+                // Search
+                if (!string.IsNullOrWhiteSpace(objdto.search))
+                {
+                    var search = objdto.search.ToLower();
+
+                    query = query.Where(x =>
+                        (x.ComplaintName != null && x.ComplaintName.ToLower().Contains(search)) ||
+                        (x.CrimeType != null && x.CrimeType.ToLower().Contains(search)) ||
+                        (x.CrimeStatus != null && x.CrimeStatus.ToLower().Contains(search)) ||
+                        (x.Location != null && x.Location.ToLower().Contains(search)) ||
+                        (x.ioOfficerName != null && x.ioOfficerName.ToLower().Contains(search))
+                    );
+                }
 
                 var totalCount = await query.CountAsync();
 
@@ -102,7 +123,7 @@ namespace CrimeManagement.Services
                 int pageSize = objdto.PageSize > 0 ? objdto.PageSize : 10;
 
                 var result = await query
-                    .Skip(pageNumber * pageSize)
+                    .Skip((pageNumber - 1)* pageSize)
                     .Take(pageSize)
                     .Select(x => new InvestigationViewDTO
                     {
@@ -116,7 +137,8 @@ namespace CrimeManagement.Services
                                             : string.Empty,
                         Location = x.Location,
                         statusId = x.StatusId,
-                        complaintIdentifier = x.ComplaintIdentifier
+                        complaintIdentifier = x.ComplaintIdentifier,
+                        ioOfficerName = x.ioOfficerName
                     })
                     .ToListAsync();
 
@@ -198,9 +220,10 @@ namespace CrimeManagement.Services
         {
             try
             {
-                
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
+
                 var user = await _db.UserMasters
-                    .FirstOrDefaultAsync(u => u.Identifier == objdto.userIdentifier);
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
 
                 if (user == null)
                     throw new CustomException("Invalid user");
@@ -254,7 +277,7 @@ namespace CrimeManagement.Services
                 }
 
                 investigation.StatusId = statusId;
-                investigation.ModifyBy = user.UserId;
+                investigation.ModifyBy = userId;
                 investigation.ModifyOn = DateTime.Now;
 
                 _db.Investigations.Update(investigation);
@@ -298,6 +321,50 @@ namespace CrimeManagement.Services
                 throw ex;
             }
         }
+
+        public async Task DoAddCaseComment(CaseNoteDTO objdto)
+        {
+            try
+            {
+                if (objdto == null || string.IsNullOrWhiteSpace(objdto.commentText))
+                    throw new CustomException("Comment cannot be empty");
+
+                int.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value, out int userId);
+
+                if (userId == 0)
+                    throw new CustomException("Invalid user");
+
+                // Get CrimeId from identifier
+                var crimeId = await _db.ComplaintRequests
+                    .Where(c => c.Identifier == objdto.crimeIdentifier)
+                    .Select(c => c.ComplaintRequestId)
+                    .FirstOrDefaultAsync();
+
+                if (crimeId == 0)
+                    throw new CustomException("Invalid complaint");
+
+                CaseNote note = new CaseNote
+                {
+                    Identifier = Helper.CustomHelper.DoGenerateGuid(),
+                    CaseNote1 = objdto.commentText.Trim(),
+                    CrimeId = crimeId,
+                    CreatedBy = userId,
+                    CreatedOn = DateTime.Now
+                };
+
+                await _db.CaseNotes.AddAsync(note);
+                await _db.SaveChangesAsync();
+            }
+            catch (CustomException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
 
     }
 }

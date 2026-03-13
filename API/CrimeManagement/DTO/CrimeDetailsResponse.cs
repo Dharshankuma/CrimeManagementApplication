@@ -22,6 +22,7 @@
         public string? assignedIo { get; set; }
         public string? startDate { get; set; }
         public string? investigationDescription { get; set; }
+        public string? identifier { get; set; }
     }
 
     public class WorkFlowControlDTO

@@ -34,7 +34,7 @@ namespace CrimeManagement.Services
 
         public async Task<bool> DoUploadEvidenceFiles(EvidenceUploadRequestDTO request)
         {
-            if (request != null)
+            if (request == null)
                 throw new CustomException("Request cannot be null");
 
             if (string.IsNullOrWhiteSpace(request.complaintIdentifier))
@@ -101,7 +101,8 @@ namespace CrimeManagement.Services
                     EvidenceAttachmentPath = storedPath,
                     Identifier = CustomHelper.DoGenerateGuid(),
                     CreatedOn = CustomHelper.DoGetDateTime(),
-                    CreatedBy = userId
+                    CreatedBy = userId,
+                    Filename = file.FileName
                 };
 
                 attachmentsToAdd.Add(evidence);

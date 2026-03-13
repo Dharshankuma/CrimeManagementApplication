@@ -22,11 +22,12 @@ namespace CrimeManagement.Services
         {
             try
             {
-                var CountryMaster = await _db.CountryMasters.Select(x => new { identifer = x.Identifier, name = x.CountryName }).ToListAsync();
-                var StateMaster = await _db.StateMasters.Select(x => new { identifer = x.Identifier, name = x.StateName }).ToListAsync();
-                var JurisdictionMaster = await _db.JurisdictionMasters.Select(x => new { identifer = x.Identifier, name = x.JurisdictionName }).ToListAsync();
+                var CountryMaster = await _db.CountryMasters.Select(x => new { identifier = x.Identifier, name = x.CountryName }).ToListAsync();
+                var StateMaster = await _db.StateMasters.Select(x => new { identifier = x.Identifier, name = x.StateName }).ToListAsync();
+                var JurisdictionMaster = await _db.JurisdictionMasters.Select(x => new { identifier = x.Identifier, name = x.JurisdictionName }).ToListAsync();
                 var crimeTypes = await _db.CrimeTypes.Select(x => new { identifier = x.Identifier, name = x.CrimeName }).ToListAsync();
                 var statusMaster = await _db.Statusmasters.Select(x => new { identifier = x.Identifier, name = x.Status }).ToListAsync();
+                var roleMaster = await _db.Roles.Select(x => new { identifier = x.Identifier, name = x.RoleName }).ToListAsync();
 
                 var data  = new
                 {
@@ -34,7 +35,8 @@ namespace CrimeManagement.Services
                     StateMaster = StateMaster,
                     JurisdictionMaster = JurisdictionMaster,
                     CrimeTypes = crimeTypes,
-                    StatusMaster = statusMaster
+                    StatusMaster = statusMaster,
+                    RoleMaster = roleMaster
                 };
 
                 return new ConfigurationDTO

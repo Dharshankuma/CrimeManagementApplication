@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
+import { useAuth, UserRole } from '../context/AuthContext';
 import '../styles/Dashboard.css';
 
 const StatCard = ({ title, value, icon, color, trend }) => (
@@ -20,6 +21,7 @@ const StatCard = ({ title, value, icon, color, trend }) => (
 );
 
 const DashboardPage = () => {
+  const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   //const [loading, setLoading] = useState(true);
 
@@ -81,7 +83,7 @@ const DashboardPage = () => {
           <div className="card shadow-sm border-0 h-100">
             <div className="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
               <h5 className="mb-0 fw-bold">Recent Activities</h5>
-              <Link to="/complaints" className="btn btn-sm btn-link">View All</Link>
+              {user?.role !== UserRole.OFFICER && <Link to="/complaints" className="btn btn-sm btn-link">View All</Link>}
             </div>
             <div className="card-body">
               <div className="table-responsive">
@@ -98,7 +100,11 @@ const DashboardPage = () => {
                     {dashboardData?.recentsComplaints && dashboardData.recentsComplaints.length > 0 ? (
                       dashboardData.recentsComplaints.map((complaint, index) => (
                         <tr key={index}>
-                          <td>{complaint.crimeId}</td>
+                          <td>
+                            <code className="bg-light px-2 py-1 rounded text-dark border extra-small">
+                              ID-{complaint.crimeId ? (complaint.crimeId.toString().length > 10 ? complaint.crimeId.substring(0, 8) : complaint.crimeId) : 'N/A'}
+                            </code>
+                          </td>
                           <td>{complaint.crimeType}</td>
                           <td>{complaint.ioOfficerName}</td>
                           <td>{complaint.lastUpdated}</td>
@@ -115,18 +121,20 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-        <div className="col-lg-4">
-          <div className="card shadow-sm border-0 h-100 bg-primary text-white">
-            <div className="card-body p-4 d-flex flex-column justify-content-center text-center">
-              <div className="mb-4">
-                <i className="bi bi-file-earmark-plus display-4"></i>
+        {user?.role !== UserRole.OFFICER && (
+          <div className="col-lg-4">
+            <div className="card shadow-sm border-0 h-100 bg-primary text-white">
+              <div className="card-body p-4 d-flex flex-column justify-content-center text-center">
+                <div className="mb-4">
+                  <i className="bi bi-file-earmark-plus display-4"></i>
+                </div>
+                <h4>Register New Complaint</h4>
+                <p className="small opacity-75">Immediately start a new case record and assign priority.</p>
+                <button className="btn btn-light mt-2 fw-bold text-primary" onClick={() => navigate('/complaints/create')}>Get Started</button>
               </div>
-              <h4>Register New Complaint</h4>
-              <p className="small opacity-75">Immediately start a new case record and assign priority.</p>
-              <button className="btn btn-light mt-2 fw-bold text-primary" onClick={() => navigate('/complaints/create')}>Get Started</button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

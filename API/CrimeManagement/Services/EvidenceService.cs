@@ -46,6 +46,7 @@ namespace CrimeManagement.Services
                         createdDate = er.CreatedOn.HasValue
                             ? er.CreatedOn.Value.ToString("dd/MM/yyyy")
                             : string.Empty
+                        
                     })
                     .ToListAsync()
                     .ConfigureAwait(false);

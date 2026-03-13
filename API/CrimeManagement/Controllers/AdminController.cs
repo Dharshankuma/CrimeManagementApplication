@@ -6,7 +6,7 @@ using static CrimeManagement.DTO.CrimeResponseDTO;
 
 namespace CrimeManagement.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -25,7 +25,7 @@ namespace CrimeManagement.Controllers
 
 
 
-        [HttpGet]
+        [HttpPost]
         [Route("GetMasterDetails")]
         public async Task<IActionResult> DoGetMasterDetails(AdminDTO objdto)
         {
@@ -36,8 +36,8 @@ namespace CrimeManagement.Controllers
                     return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request", responseStatus = Helper.CustomHelper._failure });
                 }
 
-                await _adminService.DoGetMasterDetails(objdto);
-                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "success", responseStatus = Helper.CustomHelper._success });
+                var data = await _adminService.DoGetMasterDetails(objdto);
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "success", responseStatus = Helper.CustomHelper._success,data = data });
             }
             catch (CustomException ex)
             {
@@ -84,6 +84,54 @@ namespace CrimeManagement.Controllers
                 }
                 await _adminService.DoDeleteMasterDetails(objdto);
                 return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "success", responseStatus = Helper.CustomHelper._success });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 501, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 501, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+        }
+
+        [HttpPost]
+        [Route("DoAssignJurisdiction")]
+        public async Task<IActionResult> DoAssignJurisdiction(AdminUpdateDTO objdto)
+        {
+            try
+            {
+                if(objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request", responseStatus = Helper.CustomHelper._failure });
+                }
+
+                await _adminService.DoUpdateOfficerJurisdiction(objdto);
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "success", responseStatus = Helper.CustomHelper._success });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 501, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 501, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+        }
+
+        [HttpPost]
+        [Route("DoGetJurisdiction")]
+        public async Task<IActionResult> DoGetJurisdiction(AdminDTO objdto)
+        {
+            try
+            {
+                if(objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = "Invalid Request", responseStatus = Helper.CustomHelper._failure });
+                }
+
+                var data = await _adminService.DoGetJurisdictionDetails(objdto);
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseMessage = "success", responseStatus = Helper.CustomHelper._success, data = data });
             }
             catch (CustomException ex)
             {

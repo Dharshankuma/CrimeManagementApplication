@@ -70,7 +70,7 @@ namespace CrimeManagement.Controllers
 
 
         [HttpGet]
-        [Route("FetchComplaintDetails")]
+        [Route("FetchComplaintDetails/{identifier}")]
         public async Task<IActionResult> DoGetParticularCrimeReportDetails(string identifier)
         {
             try

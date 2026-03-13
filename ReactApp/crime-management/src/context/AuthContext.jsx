@@ -58,8 +58,14 @@ export const AuthProvider = ({ children }) => {
     return !isTokenExpired(token);
   };
 
+  const updateUser = (updates) => {
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem('crime_system_user', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, checkTokenStatus }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading, checkTokenStatus }}>
       {children}
     </AuthContext.Provider>
   );

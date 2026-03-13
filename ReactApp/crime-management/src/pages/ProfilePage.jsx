@@ -6,7 +6,7 @@ import AuthService from '../services/AuthService';
 import '../styles/Admin.css';
 
 const ProfilePage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -68,6 +68,13 @@ const ProfilePage = () => {
       const response = await AuthService.PostServiceCallToken("User/UpdateProfile", payload);
 
       if (response && response.responseStatus === "success") {
+        updateUser({
+          firstname: firstName,
+          lastname: lastName,
+          emailId: formData.email,
+          phoneNo: formData.mobile
+        });
+        
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       }

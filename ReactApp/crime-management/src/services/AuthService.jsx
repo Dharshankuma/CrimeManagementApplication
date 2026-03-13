@@ -37,10 +37,14 @@ axios.interceptors.response.use((response) => {
  * @param {string|null} customToken - An optional custom token to use instead of the one in localStorage.
  * @returns {object} Headers configuration object.
  */
-const getHeaders = (requiresAuth = true, customToken = null) => {
+const getHeaders = (requiresAuth = true, customToken = null, body = null) => {
   const headers = {
     'Content-Type': 'application/json',
   };
+
+  if (body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
 
   if (requiresAuth) {
     // If a custom token is provided, use it; otherwise fallback to localStorage
@@ -108,7 +112,7 @@ const PostServiceCall = async (apiName, postData) => {
 const PostServiceCallToken = async (apiName, postData) => {
   try {
     const response = await axios.post(`${baseURL}${apiName}`, postData, {
-      headers: getHeaders(true)
+      headers: getHeaders(true, null, postData)
     });
     return response.data;
   } catch (error) {
@@ -126,7 +130,7 @@ const PostServiceCallToken = async (apiName, postData) => {
 const PostServiceCallTokenWithToken = async (apiName, postData, token) => {
   try {
     const response = await axios.post(`${baseURL}${apiName}`, postData, {
-      headers: getHeaders(true, token)
+      headers: getHeaders(true, token, postData)
     });
     return response.data;
   } catch (error) {
