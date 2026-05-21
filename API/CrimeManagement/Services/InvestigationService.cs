@@ -8,6 +8,7 @@ using static CrimeManagement.DTO.CrimeResponseDTO;
 namespace CrimeManagement.Services
 {
     public interface IInvestigationService
+
     {
         Task<Data<List<InvestigationViewDTO>>> DoGetInvestigationOverviewDetails(InvestigationRequestviewDTO objdto);
         Task<InvestigationDTO> DoGetInvestigationDetailsById(string identifier);

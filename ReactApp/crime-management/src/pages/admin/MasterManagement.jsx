@@ -7,7 +7,7 @@ const MasterManagement = () => {
   const [activeMasterTab, setActiveMasterTab] = useState('crimeTypes');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
-
+  const [totalCount, setTotalCount] = useState(0);
   const [masterData, setMasterData] = useState([]);
   const [editItem, setEditItem] = useState(null);
   const [editName, setEditName] = useState("");
@@ -122,9 +122,9 @@ const MasterManagement = () => {
     <>
       {alert.show && (
         <div className={`alert alert-${alert.type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg`} role="alert" style={{ zIndex: 9999 }}>
-          {alert.type === 'success' ? <i className="bi bi-check-circle-fill me-2"></i> : 
-           alert.type === 'warning' ? <i className="bi bi-exclamation-triangle-fill me-2"></i> :
-           <i className="bi bi-exclamation-circle-fill me-2"></i>}
+          {alert.type === 'success' ? <i className="bi bi-check-circle-fill me-2"></i> :
+            alert.type === 'warning' ? <i className="bi bi-exclamation-triangle-fill me-2"></i> :
+              <i className="bi bi-exclamation-circle-fill me-2"></i>}
           {alert.message}
           <button type="button" className="btn-close" onClick={() => setAlert({ ...alert, show: false })} aria-label="Close"></button>
         </div>
@@ -214,11 +214,11 @@ const MasterManagement = () => {
               </>
             )}
           </div>
-          <Pagination 
-            currentPage={pageNumber + 1} 
-            pageSize={pageSize} 
-            totalCount={totalCount} 
-            onPageChange={(page) => setPageNumber(page - 1)} 
+          <Pagination
+            currentPage={pageNumber + 1}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={(page) => setPageNumber(page - 1)}
           />
         </div>
       </div>

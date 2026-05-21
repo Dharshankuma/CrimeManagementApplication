@@ -14,12 +14,14 @@ namespace CrimeManagement.Controllers
         private IConfiguration _config;
         private Microsoft.AspNetCore.Hosting.IHostingEnvironment _environement;
         private readonly IAdminService _adminService;
+        private readonly IUserService _userService;
 
-        public AdminController(IConfiguration config, Microsoft.AspNetCore.Hosting.IHostingEnvironment environement, IAdminService adminService)
+        public AdminController(IConfiguration config, Microsoft.AspNetCore.Hosting.IHostingEnvironment environement, IAdminService adminService, IUserService userService)
         {
             _config = config;
             _environement = environement;
             _adminService = adminService;
+            _userService = userService;
         }
 
 
@@ -140,6 +142,31 @@ namespace CrimeManagement.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new CommonResponseDTO { responseCode = 501, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+        }
+
+        [HttpPost]
+        [Route("GetUser")]
+        public async Task<IActionResult> DoGetUserDetails(UserGridDTO objdto)
+        {
+            try
+            {
+                if (objdto == null)
+                {
+                    return BadRequest(new CommonResponseDTO { responseStatus = Helper.CustomHelper._failure, responseMessage = "Identifier is required", responseCode = 400, responseDatetime = DateTime.Now });
+                }
+
+                var data = await _userService.DoGetUserDetails(objdto);
+
+                return Ok(new CommonResponseDTO { responseCode = 200, responseDatetime = DateTime.Now, responseStatus = Helper.CustomHelper._success, data = data });
+            }
+            catch (CustomException ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._failure });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new CommonResponseDTO { responseCode = 500, responseDatetime = DateTime.Now, responseMessage = ex.Message, responseStatus = Helper.CustomHelper._success });
             }
         }
     }
